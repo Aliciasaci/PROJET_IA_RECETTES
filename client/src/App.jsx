@@ -1,35 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import './App.css';
+import SearchBar from './components/SearchBar';
+import Header from './components/Header';
+import LoginForm from './components/LoginForm';
+import SignInForm from './components/SignInForm';
+import RecettePreview from './components/RecettePreview';
+import Recette from './components/Recette';
+import RecettesSuggestions from './components/RecettesSuggestions';
+import ChatbotModal from './components/ChatbotModal'; // Import the ChatbotModal component
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [activeComponent, setActiveComponent] = useState("search");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSetComponent = (component) => {
+    setActiveComponent(component);
+  };
+
+  const recettePreviews = [];
+  for (let i = 0; i < 7; i++) {
+    recettePreviews.push(<RecettePreview key={i} />);
+  }
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="App">
+      <Header setActiveComponent={handleSetComponent} />
+      {activeComponent === "search" && <SearchBar />}
+      {activeComponent === "login" && <LoginForm />}
+      {activeComponent === "signin" && <SignInForm />}
+      {activeComponent === "recette" && <Recette />}
+      <div className="recettes-preview-wrapper">
+        {recettePreviews}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+      <RecettesSuggestions></RecettesSuggestions>
+      <div className='chatbot-icon' onClick={openModal}>
+        <img src="../src/assets/chatbot.svg" alt='chatbot'/>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      <ChatbotModal isOpen={isModalOpen} onRequestClose={closeModal} />
+    </div>
+  );
 }
 
-export default App
+export default App;
