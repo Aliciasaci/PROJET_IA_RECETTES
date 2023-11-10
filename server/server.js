@@ -5,7 +5,12 @@ const { Pool } = require('pg');
 const { dbConfig } = require('./config/database.js');
 const pool = new Pool(dbConfig);
 const port = 5000;
-const openai = new OpenAI({ apiKey: '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' });
+require('dotenv').config();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY});
+const cors = require('cors')
+
+app.use(cors());
+app.use(express.json());
 
 async function fetchRecettes() {
   try {
@@ -19,18 +24,20 @@ async function fetchRecettes() {
   }
 }
 
-app.get('/', async (req, res) => {
+app.post('/generate', async (req, res) => {
+
+  const searchPrompt = req.body.searchPrompt;
   try {
     const recettes = await fetchRecettes();
-    console.log(recettes);
 
-    const messages = [
-      { role: 'assistant', content: 'You are an IA that generated recipes based on the data the user gives you.' },
-    ];
-
+    const messages = [];
     recettes.forEach((recette) => {
-      messages.push({ role: 'user', content: `use this to create a recipe: ${JSON.stringify(recette)}` });
+      messages.push({ role: 'assistant', content: `Tu es une IA qui généres des recettes en te basant sur ces données ${JSON.stringify(recette)} et la demande que l'utilisateur te fait. Renvoi un Objet json avec le nom, la recette, les ingrédient, la photo et les catégories. N'utilise aucun ingrédient qui ne provient pas de ce que l'utilisateur ta donné.
+      Il faut que la recette reprennent exactement les mêmes ingrédients donnés.Si les données ne permettent pas de générer la recette, réponds que tu n'a aucune donnée pour faire ça.`});
     });
+
+    //demande utiliasteur
+    messages.push({ role: 'user', content: searchPrompt});
 
     const completions = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
@@ -44,6 +51,7 @@ app.get('/', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
