@@ -13,14 +13,40 @@
   box-shadow: rgba(245, 93, 93, 0.12) 0px 1px 3px, rgba(255, 196, 196, 0.24) 0px 1px 2px;
 }
 
+.heroBackground {
+  background-image: url("https://sb.kaleidousercontent.com/67418/1920x1280/166659692b/ella-olsson-opbjwbccaeo-unsplash.jpg");
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  height: 35vh;
+}
+
+.recette-preview-img {
+    margin: -3rem auto 1rem auto;
+    border-radius: 1rem;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 25px -5px;
+}
+
+.cardboxshadow {
+  box-shadow: rgba(0, 0, 0, 0.10) 0px 20px 30px 0px;
+}
+
 
 .searchbar {}
+
+.heroTitle {
+  font-family: "Agbalumo";
+  margin-top: 5rem;
+  display: flex;
+  justify-content: center;
+  font-size: 3rem;
+  color: white;
+  text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
+}
 
 .searchbar-wrapper {
   display: flex;
   width: 60rem;
-  margin: auto;
-  margin-top: 10rem;
+  margin: 3rem auto;
 }
 
 .loginForm {
@@ -39,10 +65,10 @@
 .recettes-preview-wrapper {
   width: 90%;
   margin: auto;
-  margin-top: 3rem;
+  margin-top: 6rem;
   display: flex;
   flex-wrap: wrap;
-  justify-content: start;
+  justify-content: center;
 }
 
 .recettes-preview-wrapper .recette {

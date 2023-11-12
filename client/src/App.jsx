@@ -1,26 +1,16 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
-import SearchBar from './components/SearchBar';
 import Header from './components/Header';
-import LoginForm from './components/LoginForm';
 import SignInForm from './components/SignInForm';
-import RecettePreview from './components/RecettePreview';
-import Recette from './components/Recette';
+import SignUpForm from './components/SignUpForm';
+import MainPage from './page/MainPage';
+import RecetteDetails from './components/RecetteDetails';
 import RecettesSuggestions from './components/RecettesSuggestions';
 import ChatbotModal from './components/ChatbotModal'; // Import the ChatbotModal component
 
 function App() {
-  const [activeComponent, setActiveComponent] = useState("search");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleSetComponent = (component) => {
-    setActiveComponent(component);
-  };
-
-  const recettePreviews = [];
-  for (let i = 0; i < 7; i++) {
-    recettePreviews.push(<RecettePreview key={i} />);
-  }
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -31,21 +21,21 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <Header setActiveComponent={handleSetComponent} />
-      {activeComponent === "search" && <SearchBar />}
-      {activeComponent === "login" && <LoginForm />}
-      {activeComponent === "signin" && <SignInForm />}
-      {activeComponent === "recette" && <Recette />}
-      <div className="recettes-preview-wrapper">
-        {recettePreviews}
+    <Router>
+      <div className="App heroBackground">
+        <Header />
+        <Routes>
+          <Route path='/' element={<MainPage />} />
+          <Route path="/signin" element={<SignInForm />} />
+          <Route path="/signup" element={<SignUpForm />} />
+          <Route path="/recetteDetails/:id" element={<RecetteDetails />} />
+        </Routes>
+        <div className='chatbot-icon' onClick={openModal}>
+          <img src="../src/assets/chatbot.svg" alt='chatbot'/>
+        </div>
+        <ChatbotModal isOpen={isModalOpen} onRequestClose={closeModal} />
       </div>
-      <RecettesSuggestions></RecettesSuggestions>
-      <div className='chatbot-icon' onClick={openModal}>
-        <img src="../src/assets/chatbot.svg" alt='chatbot'/>
-      </div>
-      <ChatbotModal isOpen={isModalOpen} onRequestClose={closeModal} />
-    </div>
+    </Router>
   );
 }
 

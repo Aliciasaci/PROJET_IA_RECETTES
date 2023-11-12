@@ -1,9 +1,8 @@
 import React from 'react';
+import { AppBar, Button, Container, Menu, MenuItem, Toolbar, Typography } from '@mui/material';
+import { Link } from 'react-router-dom';
 
-export default function Header({ setActiveComponent }) {
-  const handleLinkClick = (component) => {
-    setActiveComponent(component);
-  };
+export default function Header() {
 
   return (
     <nav className="navbar" role="navigation" aria-label="main navigation">
@@ -15,23 +14,23 @@ export default function Header({ setActiveComponent }) {
 
       <div id="navbarBasicExample" className="navbar-menu">
         <div className="navbar-start">
-          <a className="navbar-item" onClick={() => handleLinkClick("search")}>
+          <Link className="navbar-item" to={"/"}>
             Accueil
-          </a>
-          <a className="navbar-item" onClick={() => handleLinkClick("recette")}>
-            Recette
-          </a>
+          </Link>
+          <Link className='navbar-item' to={"/allRecettes"}>
+            Toutes nos recettes
+          </Link>
         </div>
 
         <div className="navbar-end">
           <div className="navbar-item">
             <div className="buttons">
-              <a className="button is-primary btn-signup"  onClick={() => handleLinkClick("signin")}>
-                <strong>Sign up</strong>
-              </a>
-              <a className="button is-light"  onClick={() => handleLinkClick("login")}>
-                Log in
-              </a>
+              <Button className="" component={Link} to={"/signup"}>
+                <strong>S'inscrire</strong>
+              </Button>
+              <Button className="" component={Link} to={"/signin"}>
+                Se connecter
+              </Button>
             </div>
           </div>
         </div>
