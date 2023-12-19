@@ -43,6 +43,7 @@ app.post("/fetchTitles", async (req, res) => {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: messages,
+      format : "json",
     });
 
     const assistantResponse = completions.choices[0].message.content;
@@ -55,10 +56,10 @@ app.post("/fetchTitles", async (req, res) => {
 
 async function fetchRecettesByTitle(recettes) {
   try {
-    console.log(recettes);
     const recettesArray = JSON.parse(recettes);
     const client = await pool.connect();
     const promises = recettesArray.map((recette) => {
+      console.log("recette" + recette);
       return client.query("SELECT * FROM recettes WHERE titre = $1", [recette]);
     });
 
