@@ -25,11 +25,11 @@ export default function Header() {
         <div className="navbar-end">
           <div className="navbar-item">
             <div className="buttons">
-              <Button className="" component={Link} to={"/signup"}>
-                <strong>S'inscrire</strong>
-              </Button>
-              <Button className="" component={Link} to={"/signin"}>
+            <Button className="signin-btn mr-2" component={Link} to={"/signin"} style={{ color: 'black', border : '1px solid orangered', padding: '0.5rem 1rem' }}>
                 Se connecter
+              </Button>
+              <Button className="signup-btn" component={Link} to={"/signup"} style={{ color: 'white', backgroundColor: 'orangered', padding: '0.5rem 1rem' }}>
+                S'inscrire
               </Button>
             </div>
           </div>

@@ -10,19 +10,26 @@
 }
 
 .navbar {
-  box-shadow: rgba(245, 93, 93, 0.12) 0px 1px 3px, rgba(255, 196, 196, 0.24) 0px 1px 2px;
+  /* box-shadow: rgba(245, 93, 93, 0.12) 0px 1px 3px, rgba(255, 196, 196, 0.24) 0px 1px 2px; */
+}
+html{
+}
+
+.navbar-brand,
+.navbar-tabs {
+  min-height: 4rem;
 }
 
 .heroBackground {
   background-image: url("https://sb.kaleidousercontent.com/67418/1920x1280/166659692b/ella-olsson-opbjwbccaeo-unsplash.jpg");
   background-size: 100% auto;
   background-repeat: no-repeat;
-  height: 35vh;
+  height: 55Vh;
 }
 
 .recette-preview-img {
-    margin: -3rem auto 1rem auto;
-    border-radius: 1rem;
+  margin: -3rem auto 1rem auto;
+  border-radius: 1rem;
   box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 25px -5px;
 }
 
@@ -31,7 +38,11 @@
 }
 
 
-.searchbar {}
+.searchbar {
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  height: 3rem;
+  border: 1px solid orangered;
+}
 
 .heroTitle {
   font-family: "Agbalumo";
@@ -40,13 +51,29 @@
   justify-content: center;
   font-size: 3rem;
   color: white;
-  text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
+  text-shadow: 0px 0px 3px rgba(0, 0, 0, 1);
+}
+
+.heroSubtitle {
+  font-family: "Agbalumo";
+  display: flex;
+  justify-content: center;
+  font-size: 1.7rem;
+  color: #252424;
+  margin: 1rem;
+  text-shadow: 0px 0px 1px rgb(67, 67, 67);
 }
 
 .searchbar-wrapper {
   display: flex;
   width: 60rem;
   margin: 3rem auto;
+}
+
+.soumettre {
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  height: 3rem;
+  border: 1px solid orangered;
 }
 
 .loginForm {
@@ -61,6 +88,7 @@
 .recette-preview {
   width: 15rem;
 }
+
 
 .recettes-preview-wrapper {
   width: 90%;
@@ -79,6 +107,7 @@
   width: 53%;
   margin: auto;
   margin-top: 2rem;
+  padding-bottom: 3rem;
 }
 
 .recettes-suggestions-wrapper {
@@ -86,13 +115,14 @@
   margin-top: 3rem;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-
+  justify-content: start;
+  background-color: beige;
   padding: 5rem;
+  padding-top: 1rem;
 }
 
 .recettes-suggestions {
-  background: beige;
+  margin: 0 1rem;
 }
 
 .chatbot-icon {
@@ -103,20 +133,18 @@
   height: 4rem;
 }
 
-.chat{
-  
-}
+.chat {}
 
-.chatbot-icon img:hover{
+.chatbot-icon img:hover {
   cursor: pointer;
 }
 
 
-.ReactModal__Overlay--after-open{
+.ReactModal__Overlay--after-open {
   background-color: transparent !important;
 }
 
-.ReactModal__Content{
+.ReactModal__Content {
   width: 23rem;
   height: 23rem;
   border: none !important;
@@ -129,7 +157,7 @@
   border-radius: 21px !important;
 }
 
-.ReactModal__Content input{
+.ReactModal__Content input {
   position: absolute;
   bottom: 2%;
   left: 0%;
@@ -137,8 +165,40 @@
   width: 21rem;
 }
 
-.ReactModal__Content span{
+.ReactModal__Content span {
   position: absolute;
   right: 5%;
 }
 
+
+.signup-btn .signin-btn {
+  color: black;
+  border: 1px solid black;
+}
+
+.home-suggestion-cards-wrapper {
+  display: flex;
+  width: 50rem;
+  margin: auto;
+  justify-content: space-evenly;
+}
+
+.home-suggestion-cards-wrapper div{
+  padding: 2rem;
+  border: 2px solid beige;
+  margin-top: 1rem;
+  font-family: "Agbalumo";
+  cursor: pointer;
+}
+
+.home-suggestion-cards-wrapper div:hover{
+background-color: rgb(255, 255, 213);
+}
+
+.home-suggestion-cards-wrapper div:last-child{
+  height: fit-content;
+}
+
+.recettes-suggestions-wrapper .heroSubtitle{
+  flex-basis: 100%;
+}
