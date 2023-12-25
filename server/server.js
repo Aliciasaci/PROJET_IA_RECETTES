@@ -34,7 +34,7 @@ app.post("/fetchTitles", async (req, res) => {
       role: "system",
       content: `En te basant sur ces données ${JSON.stringify(
         recettes
-      )} et la demande que l'utilisateur te fait. Renvoi SEULEMENT un tableau (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande.`,
+      )} et la demande que l'utilisateur te fait. Renvoi SEULEMENT un tableau (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande. la demande peut être par temps de préparation. par catégorie de recette et par ingrédients.`,
     });
 
     //demande utiliasteur
@@ -118,7 +118,7 @@ async function fetchSimilarRecipes(recetteTitle) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}. renvoi sous format json et uniquement les titres` },
+        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}.` },
       ],
       format: "json",
     });
@@ -142,6 +142,37 @@ app.get("/fetchSimilarRecipes", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+
+// generate random recipes 
+async function fetchRandomRecipes() {
+  const recettes = await fetchRecettes();
+  try {
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. proposes 5 recette aléatoirs. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'` },
+      ],
+    });
+
+    result = completions.choices[0].message.content;
+    return result;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.get("/fetchRandomRecipes", async (req, res) => {
+  try {
+    const randomRecipes = await fetchRandomRecipes();
+    res.json({ randomRecipes });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 
 app.listen(port, () => {

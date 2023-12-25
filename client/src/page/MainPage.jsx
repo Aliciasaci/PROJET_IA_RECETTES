@@ -1,13 +1,74 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SearchBar from "../components/SearchBar";
 import RecettePreview from "../components/RecettePreview";
 import { Typography } from "@mui/material";
+import axios from 'axios';
 
 export default function MainPage() {
   const [recettes, setRecettes] = useState(null);
+  const [randomRecipes, setRandomRecipes] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
   const handleSearch = (search) => {
     setRecettes(search);
   };
+
+  async function fetchRandomRecipes() {
+    try {
+      const response = await axios.get(`http://localhost:5000/fetchRandomRecipes`);
+      const data = response.data;
+      if (response.status === 200) {
+        return data.randomRecipes;
+      } else {
+        throw new Error(data.message || "Erreur lors de la récupération");
+      }
+    } catch (error) {
+      console.error("Error fetching recipes", error);
+      throw error;
+    }
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const randomRecipesData = await fetchRandomRecipes();
+        setRandomRecipes(randomRecipesData);
+        setDataLoaded(true);
+      } catch (error) {
+        console.error('Error fetching recipes', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const parseRandomRecipes = (randomRecipesData) => {
+    try {
+      const randomRecipesArray = JSON.parse(randomRecipesData).recettes;
+      if (Array.isArray(randomRecipesArray)) {
+        return randomRecipesArray.map((suggestion, index) => (
+          <div className="card recette-preview recette ml-4 mr-4" key={index}>
+            <div className="card-image">
+              <figure className="image is-6by3">
+                <img src="https://assets.afcdn.com/recipe/20211214/125831_w1024h768c1cx866cy866.jpg" alt="Placeholder image" />
+              </figure>
+            </div>
+            <div className="card-content">
+              <div className="content">
+                <p className="title is-6"> {suggestion}</p>
+              </div>
+            </div>
+          </div>
+        ));
+      } else {
+        throw new Error("Format invalide : 'recettes' devrait être un tableau.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'analyse des suggestions :", error.message);
+      return null;
+    }
+  }
+
 
   return (
     <div>
@@ -28,18 +89,17 @@ export default function MainPage() {
                 recette={recette[0]}
               />
             ))
-          ) : null 
+          ) : null
         ) : null}
       </div>
       <div className="heroSubtitle">
         Envie de ?<br />
       </div>
-      <div className="home-suggestion-cards-wrapper">
-        <div class="box">Nuggets</div>
-        <div class="box">Burger</div>
-        <div class="box">pizza</div>
-        <div class="box">Woke</div>
-      </div>
+      {randomRecipes ? (
+        <div className="home-suggestion-cards-wrapper">
+          {parseRandomRecipes(randomRecipes)}
+        </div>
+      ) : null}
     </div>
   );
 }

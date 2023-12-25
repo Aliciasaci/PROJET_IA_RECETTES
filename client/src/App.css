@@ -178,14 +178,14 @@ html{
 
 .home-suggestion-cards-wrapper {
   display: flex;
-  width: 50rem;
-  margin: auto;
+  width: 83rem;
+  margin: 2rem auto;
   justify-content: space-evenly;
 }
 
-.home-suggestion-cards-wrapper div{
-  padding: 2rem;
-  border: 2px solid beige;
+/* .home-suggestion-cards-wrapper div{
+  padding: 3rem;
+  border: 2px solid rgb(228, 228, 228);
   margin-top: 1rem;
   font-family: "Agbalumo";
   cursor: pointer;
@@ -196,9 +196,8 @@ background-color: rgb(255, 255, 213);
 }
 
 .home-suggestion-cards-wrapper div:last-child{
-  height: fit-content;
 }
 
 .recettes-suggestions-wrapper .heroSubtitle{
   flex-basis: 100%;
-}
+} */

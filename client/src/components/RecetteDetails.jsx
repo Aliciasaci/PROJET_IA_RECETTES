@@ -77,6 +77,7 @@ export default function Recette() {
               <h2>Instructions :</h2>
               {parseInstructionsToList(recette.instructions)}
             </div>
+            <button class="ml-6 button is-light">Générer la liste de course</button>
           </div>
         ) : (
           <p>Chargement en cours...</p>

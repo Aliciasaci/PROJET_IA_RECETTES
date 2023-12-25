@@ -3,8 +3,7 @@ import React from 'react';
 const RecettesSuggestions = (props) => {
 
     const { suggestions } = props;
-
-
+    
     const parseRecettes = (suggestions) => {
         try {
             const recettes = JSON.parse(suggestions);
