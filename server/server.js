@@ -34,7 +34,7 @@ app.post("/fetchTitles", async (req, res) => {
       role: "system",
       content: `En te basant sur ces données ${JSON.stringify(
         recettes
-      )} et la demande que l'utilisateur te fait. Renvoi SEULEMENT un tableau (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande.`,
+      )} et la demande que l'utilisateur te fait. Renvoi SEULEMENT un tableau (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande. la demande peut être par temps de préparation. par catégorie de recette et par ingrédients.`,
     });
 
     //demande utiliasteur
@@ -43,6 +43,7 @@ app.post("/fetchTitles", async (req, res) => {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: messages,
+      format: "json",
     });
 
     const assistantResponse = completions.choices[0].message.content;
@@ -55,7 +56,6 @@ app.post("/fetchTitles", async (req, res) => {
 
 async function fetchRecettesByTitle(recettes) {
   try {
-    console.log(recettes);
     const recettesArray = JSON.parse(recettes);
     const client = await pool.connect();
     const promises = recettesArray.map((recette) => {
@@ -81,6 +81,99 @@ app.post("/fetchRecettesByTitle", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+
+async function fetchRecetteById(recetteId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT * FROM recettes WHERE id = $1", [recetteId]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.get("/fetchRecetteById/:id", async (req, res) => {
+  const recetteId = req.params.id;
+  try {
+    const recetteData = await fetchRecetteById(recetteId);
+    if (recetteData) {
+      res.json({ recetteData });
+    } else {
+      res.status(404).json({ message: "Recette non trouvée" });
+    }
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+async function fetchSimilarRecipes(recetteTitle) {
+  const recettes = await fetchRecettes();
+  try {
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}.` },
+      ],
+      format: "json",
+    });
+
+    result = completions.choices[0].message.content;
+    console.log(result);
+    return result;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.get("/fetchSimilarRecipes", async (req, res) => {
+  const titre = req.query.titre;
+  try {
+    const similarRecipes = await fetchSimilarRecipes(titre);
+    res.json({ similarRecipes });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+// generate random recipes 
+async function fetchRandomRecipes() {
+  const recettes = await fetchRecettes();
+  try {
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. proposes 5 recette aléatoirs. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'` },
+      ],
+    });
+
+    result = completions.choices[0].message.content;
+    return result;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.get("/fetchRandomRecipes", async (req, res) => {
+  try {
+    const randomRecipes = await fetchRandomRecipes();
+    res.json({ randomRecipes });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);

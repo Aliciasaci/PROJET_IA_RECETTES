@@ -1,20 +1,49 @@
-import RecettePreview from "./RecettePreview";
+import React from 'react';
 
-export default function RecettesSuggestions() {
-    // Nombre d'instances de RecettePreview à générer
-    const numberOfPreviews = 5; // Par exemple, 7 prévisualisations
+const RecettesSuggestions = (props) => {
 
-    const recettePreviews = [];
+    const { suggestions } = props;
+    
+    const parseRecettes = (suggestions) => {
+        try {
+            const recettes = JSON.parse(suggestions);
 
-    for (let i = 0; i < numberOfPreviews; i++) {
-        recettePreviews.push(<RecettePreview key={i} />);
+            if (Array.isArray(recettes)) {
+                return recettes.map((recette, index) => (
+
+                    <div className="card recette-preview recette ml-4 mr-4" key={index}>
+                        <div className="card-image">
+                            <figure className="image is-6by3">
+                                <img src="https://assets.afcdn.com/recipe/20211214/125831_w1024h768c1cx866cy866.jpg" alt="Placeholder image" />
+                            </figure>
+                        </div>
+                        <div className="card-content">
+                            <div className="content">
+                                <p className="title is-6">  {recette.titre}</p>
+                                <br />
+                                <button className="button is-small mt-2">➕ Voir plus</button>
+                            </div>
+                        </div>
+                    </div>
+                ));
+            } else {
+                throw new Error("Invalid format: 'recettes' should be an array.");
+            }
+        } catch (error) {
+            console.error("Error parsing suggestions:", error.message);
+            return null;
+        }
     }
 
     return (
-        <div className="recettes-suggestions">
-            <div className="recettes-suggestions-wrapper">
-                {recettePreviews}
+
+        <div className='recettes-suggestions-wrapper'>
+            <div className="heroSubtitle">
+                Nous pensons que vous aimerez aussi...<br />
             </div>
+            {parseRecettes(suggestions)}
         </div>
     );
-}
+};
+
+export default RecettesSuggestions;

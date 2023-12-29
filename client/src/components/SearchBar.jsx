@@ -36,7 +36,7 @@ export default function searchBar({ onSubmit: onSubmit }) {
         <div className="searchbar-wrapper">
             <input className="input is-rounded searchbar" type="text" placeholder="Saisissez votre recherche..."
             value={searchPrompt} onChange={handleInputChange}></input>
-            <button className="button is-rounded" onClick={handleSearch}>Soumettre</button>
+            <button className="button is-rounded soumettre" onClick={handleSearch}>Soumettre</button>
         </div>
     )
 }
