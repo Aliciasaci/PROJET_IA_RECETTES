@@ -207,6 +207,54 @@ app.post("/groceries", async (req, res) => {
   }
 });
 
+async function signUp(user) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("INSERT INTO users (nom, prenom, email, password) VALUES ($1, $2, $3, $4)", [user.nom, user.prenom, user.email, user.password]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.post("/signUp", async (req, res) => {
+  try {
+    const user = req.body;
+    const userData = await signUp(user);
+    res.json({ userData });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+async function signIn(user) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT * FROM users WHERE email = $1 AND password = $2", [user.email, user.password]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.post("/signIn", async (req, res) => {
+  try {
+    const user = req.body;
+    const userData = await signIn(user);
+    res.json({ userData });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 
 //* Générer accompagnement

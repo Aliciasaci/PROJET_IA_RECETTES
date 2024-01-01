@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import RecettesSuggestions from './RecettesSuggestions';
@@ -116,7 +116,7 @@ export default function Recette() {
               <h2>Instructions :</h2>
               {parseInstructionsToList(recette.instructions)}
             </div>
-            <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >liste de course</button>
+            <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
             <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
 
             {accompagnements && (
