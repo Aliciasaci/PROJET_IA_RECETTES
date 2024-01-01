@@ -8,9 +8,11 @@ const pool = new Pool(dbConfig);
 const port = 5000;
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const cors = require("cors");
-
+const bodyParser = require("body-parser");
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
+
 
 async function fetchRecettes() {
   try {
@@ -118,13 +120,12 @@ async function fetchSimilarRecipes(recetteTitle) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}.` },
+        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'.` },
       ],
       format: "json",
     });
 
     result = completions.choices[0].message.content;
-    console.log(result);
     return result;
   } catch (error) {
     console.error("Error executing query", error);
@@ -144,7 +145,7 @@ app.get("/fetchSimilarRecipes", async (req, res) => {
 });
 
 
-// generate random recipes 
+//* generate random recipes 
 async function fetchRandomRecipes() {
   const recettes = await fetchRecettes();
   try {
@@ -167,6 +168,42 @@ app.get("/fetchRandomRecipes", async (req, res) => {
   try {
     const randomRecipes = await fetchRandomRecipes();
     res.json({ randomRecipes });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+
+//* Générer liste de courses
+async function generateGroceriesList(ingredients) {
+  console.log("ingredient", ingredients);
+
+
+  try {
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: `Propose une liste d'ingrédient à acheter en te basant sur ces besoin :   ${JSON.stringify(ingredients)}. renvoi un objet json dont la clè du json est le terme 'ingredients'.` },
+      ],
+    });
+
+    result = completions.choices[0].message.content;
+    return result;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.post("/groceries", async (req, res) => {
+  try {
+    const ingredients = req.body.ingredients;
+
+    const groceries = await generateGroceriesList(ingredients);
+
+    res.json({ groceries });
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");

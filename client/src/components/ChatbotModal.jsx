@@ -7,7 +7,7 @@ function ChatbotModal({ isOpen, onRequestClose }) {
   return (
     <Modal isOpen={isOpen} onRequestClose={onRequestClose} contentLabel="Chatbot Modal">
       <span onClick={onRequestClose}>❌</span>
-      <input class="input is-rounded is-small" type="text" placeholder="Hii"/>
+      <input className="input is-rounded is-small" type="text" placeholder="Hii"/>
     </Modal>
   );
 }
