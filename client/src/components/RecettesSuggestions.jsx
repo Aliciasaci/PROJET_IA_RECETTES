@@ -6,8 +6,7 @@ const RecettesSuggestions = (props) => {
     
     const parseRecettes = (suggestions) => {
         try {
-            const recettes = JSON.parse(suggestions);
-
+            const recettes = JSON.parse(suggestions).recettes;
             if (Array.isArray(recettes)) {
                 return recettes.map((recette, index) => (
 

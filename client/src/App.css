@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap');
 
 .logo {
   font-family: "Agbalumo";
@@ -12,8 +13,8 @@
 .navbar {
   /* box-shadow: rgba(245, 93, 93, 0.12) 0px 1px 3px, rgba(255, 196, 196, 0.24) 0px 1px 2px; */
 }
-html{
-}
+
+html {}
 
 .navbar-brand,
 .navbar-tabs {
@@ -24,7 +25,7 @@ html{
   background-image: url("https://sb.kaleidousercontent.com/67418/1920x1280/166659692b/ella-olsson-opbjwbccaeo-unsplash.jpg");
   background-size: 100% auto;
   background-repeat: no-repeat;
-  height: 55Vh;
+  height: 40Vh;
 }
 
 .recette-preview-img {
@@ -104,10 +105,11 @@ html{
 }
 
 .recette-detail {
-  width: 53%;
+  width: 40%;
   margin: auto;
   margin-top: 2rem;
   padding-bottom: 3rem;
+  position: relative;
 }
 
 .recettes-suggestions-wrapper {
@@ -116,7 +118,7 @@ html{
   display: flex;
   flex-wrap: wrap;
   justify-content: start;
-  background-color: beige;
+  background-color: #fffcee; 
   padding: 5rem;
   padding-top: 1rem;
 }
@@ -198,6 +200,64 @@ background-color: rgb(255, 255, 213);
 .home-suggestion-cards-wrapper div:last-child{
 }
 
-.recettes-suggestions-wrapper .heroSubtitle{
+*/
+.recettes-suggestions-wrapper .heroSubtitle {
   flex-basis: 100%;
-} */
+}
+
+.css-bkcq9w-MuiPaper-root-MuiCard-root {
+  box-shadow: rgba(178, 175, 175, 0.2) 0px 2px 8px 0px !important;
+  width: 18rem !important;
+  border-radius: 16px !important;
+}
+
+
+.css-9s09jf-MuiTypography-root {
+  height: 52px !important;
+  overflow: hidden !important;
+}
+
+.css-1tk1bks-MuiDivider-root {
+  border: 1px solid #f7f7f7 !important;
+}
+
+.css-9mgopn-MuiDivider-root {
+  border: 1px solid #fbfbfb !important;
+  width: 95% !important;
+  margin: auto !important;
+}
+
+.liste-courses-title {
+  font-family: 'Dancing Script', cursive;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.liste-courses {
+  padding-left: 2rem;
+  font-family: 'Dancing Script', cursive;
+  position: relative;
+}
+
+.liste-courses li{
+  text-decoration: underline;
+  font-size: 1.1rem;
+}
+
+#orange-image {
+  position: absolute;
+  width: 10%;
+  margin-left: 23px;
+}
+
+#eggplant-image {
+  position: absolute;
+  width: 24%;
+  right: 0%;
+  top: 37%;
+  z-index: 1;
+}
+
+.liste-courses{
+  background-color: #fffcee;
+}
