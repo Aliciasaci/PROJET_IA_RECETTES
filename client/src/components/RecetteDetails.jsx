@@ -9,6 +9,7 @@ export default function Recette() {
   const [similarRecipes, setSimilarRecipes] = useState('');
   const [ingredients, setIngredients] = useState('');
   const [listeCourses, setListeCourses] = useState('');
+  const [accompagnements, setAccompagnements] = useState('');
 
   const parseInstructionsToList = (string) => {
     const items = string.split(/\s(?=\d\.)/);
@@ -28,7 +29,11 @@ export default function Recette() {
     return <ul>{listItems}</ul>;
   };
 
-  
+  const parseAccompagnementToList = (accompagnements) => {
+    let string = JSON.parse(accompagnements).accompagnements;
+    const listItems = string.map((item, index) => <li key={index}>◯ {item}</li>);
+    return <ul>{listItems}</ul>;
+  };
 
 
   async function fetchRecipeDetails(recipeId) {
@@ -54,6 +59,17 @@ export default function Recette() {
     axios.post('http://localhost:5000/groceries', { ingredients })
       .then(response => {
         setListeCourses(response.data.groceries);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  }
+
+  async function handleSubmitAccompagnement() {
+    axios.post('http://localhost:5000/recettes/18/accompagnements/')
+      .then(response => {
+        console.log(response);
+        setAccompagnements(response.data.accompagnements);
       })
       .catch(error => {
         console.error(error);
@@ -101,7 +117,13 @@ export default function Recette() {
               {parseInstructionsToList(recette.instructions)}
             </div>
             <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
-            <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Accompagnement</button>
+            <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
+
+            {accompagnements && (
+              <div className="content pl-6">
+                {parseAccompagnementToList(accompagnements)}
+              </div>
+            )}
           </div>
 
         ) : (
