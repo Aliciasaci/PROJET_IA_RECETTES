@@ -98,7 +98,8 @@ export default function Recette() {
               <h2>Instructions :</h2>
               {parseInstructionsToList(recette.instructions)}
             </div>
-            <button className="ml-6 button is-dark" onClick={handleSubmitGroceries} >Générer la liste de course</button>
+            <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >liste de course</button>
+            <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Accompagnement</button>
           </div>
 
         ) : (
@@ -112,6 +113,14 @@ export default function Recette() {
           <h2 className="title is-1 liste-courses-title">Liste de courses</h2>
           <div className='liste-courses'>
             {parseCoursesToList(listeCourses)}
+          </div>
+
+          <div className="shareon">
+            <a className="facebook"></a>
+            <a className="messenger" data-fb-app-id="APP ID"></a>
+            <a className="twitter"></a>
+            <a className="whatsapp" data-url="url"></a>
+            <a className="email"></a>
           </div>
         </div>
       )}
