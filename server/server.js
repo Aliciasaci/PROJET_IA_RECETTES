@@ -178,9 +178,6 @@ app.get("/fetchRandomRecipes", async (req, res) => {
 
 //* Générer liste de courses
 async function generateGroceriesList(ingredients) {
-  console.log("ingredient", ingredients);
-
-
   try {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -209,6 +206,41 @@ app.post("/groceries", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+
+
+//* Générer accompagnement
+async function generateAccompagnement(recette) {
+  try {
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: `Proposes des accompagnements à la recette suivante : ${JSON.stringify(recette)}. Les accompagnements doivent être des vins ou des frommages et un dessert sucré ou salé. renvoi un objet json dont la clè du json est le terme 'accompagnements'.` },
+      ],
+    });
+
+    result = completions.choices[0].message.content;
+    return result;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.post("/recettes/:id/accompagnements/", async (req, res) => {
+
+  try {
+    const recetteId = req.params.id;
+    const recette = await fetchRecetteById(recetteId);
+    const accompagnement = await generateAccompagnement(recette);
+
+    res.json({ accompagnement });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 
 
