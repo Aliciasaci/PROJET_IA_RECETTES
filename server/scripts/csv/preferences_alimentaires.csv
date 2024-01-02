@@ -1,0 +1,48 @@
+categorie_id,titre
+1,Arachides
+1,Noix
+1,Graines
+1,Gluten
+1,Lactose
+1,Soja
+1,Œufs
+1,Poisson
+1,Crustacés
+1,Sésame
+1,Céleri
+1,Moutarde
+1,Lupin
+1,Mollusques
+1,Sulfites
+2,Végétalien
+2,Végétarien
+2,Sans produits laitiers
+2,Sans gluten
+2,Sans sucre ajouté
+2,Faible teneur en sel
+2,Sans œufs
+2,Sans fruits à coque
+2,Sans soja
+2,Sans poisson
+2,Aliments biologiques
+2,Aliments locaux
+2,Produits sans OGM
+2,Produits sans additifs
+2,Produits sans conservateurs
+2,Produits sans colorants
+2,Régime alimentaire sans viande rouge
+3,Hypertension artérielle
+3,Diabète
+3,Insuffisance rénale
+3,Problèmes cardiaques
+3,Goutte
+3,Maladie cœliaque
+3,Maladie de Crohn
+3,Pancréatite
+3,Troubles de la thyroïde
+3,Intolérance au lactose
+3,Maladies auto-immunes
+3,Troubles gastro-intestinaux
+3,Maladies hépatiques
+3,Allergies médicamenteuses
+3,Antécédents de caillots sanguins
