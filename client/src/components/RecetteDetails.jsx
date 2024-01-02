@@ -13,7 +13,7 @@ export default function Recette() {
 
   const parseInstructionsToList = (string) => {
     const items = string.split(/\s(?=\d\.)/);
-    const listItems = items.map((item, index) => <li key={index}>{item}</li>);
+    const listItems = items.map((item, index) => <li key={index}><span className='intructions-numbers'>{index + 1}</span><br />{item}</li>);
     return <ul>{listItems}</ul>;
   }
 
@@ -30,11 +30,18 @@ export default function Recette() {
   };
 
   const parseAccompagnementToList = (accompagnements) => {
-    let string = JSON.parse(accompagnements).accompagnements;
-    const listItems = string.map((item, index) => <li key={index}>◯ {item}</li>);
+    const accompagnementsObject = JSON.parse(accompagnements).accompagnements;
+
+    const listItems = Object.values(accompagnementsObject).map((value, index) => (
+      <div key={index}>
+        {Object.values(value).map((nestedValue, nestedIndex) => (
+          <li key={nestedIndex}>{nestedValue}</li>
+        ))}
+      </div>
+    ));
+
     return <ul>{listItems}</ul>;
   };
-
 
   async function fetchRecipeDetails(recipeId) {
     try {
@@ -68,7 +75,6 @@ export default function Recette() {
   async function handleSubmitAccompagnement() {
     axios.post('http://localhost:5000/recettes/18/accompagnements/')
       .then(response => {
-        console.log(response);
         setAccompagnements(response.data.accompagnements);
       })
       .catch(error => {
@@ -105,22 +111,27 @@ export default function Recette() {
             </div>
             <div className="card-content pl-6 pr-6">
               <div className="media-content">
-                <h1 className="title is-4">{recette.titre}</h1>
+                <h1 className="title recette-title">{recette.titre}</h1>
               </div>
             </div>
 
-            <div className="content pl-6">
-              <h2>Ingrédients :</h2>
+            <div className="content pl-6 ingredients">
+              <h2><u>Ingrédients :</u></h2>
               {parseIngredientsToList(recette.ingredients)}
+            </div>
 
-              <h2>Instructions :</h2>
+            <div className="content pl-6 instructions">
+              <h2><u>Instructions :</u></h2>
               {parseInstructionsToList(recette.instructions)}
             </div>
+
             <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
             <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
 
             {accompagnements && (
-              <div className="content pl-6">
+              <div className="content pl-6 ">
+                <h2>Accompagnement :</h2>
+
                 {parseAccompagnementToList(accompagnements)}
               </div>
             )}
