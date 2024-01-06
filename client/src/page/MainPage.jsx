@@ -7,6 +7,7 @@ import axios from 'axios';
 export default function MainPage() {
   const [recettes, setRecettes] = useState(null);
   const [randomRecipes, setRandomRecipes] = useState(null);
+  const [randomRecipesFullData, setRandomRecipesFullData] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
   const handleSearch = (search) => {
@@ -34,6 +35,7 @@ export default function MainPage() {
         const randomRecipesData = await fetchRandomRecipes();
         setRandomRecipes(randomRecipesData);
         setDataLoaded(true);
+        handleRecetteSuggestionsDetail(randomRecipesData);
       } catch (error) {
         console.error('Error fetching recipes', error);
       }
@@ -42,33 +44,41 @@ export default function MainPage() {
     fetchData();
   }, []);
 
-  const parseRandomRecipes = (randomRecipesData) => {
+
+  const parseRandomRecipes = (randomRecipesFullData) => {
     try {
-      const randomRecipesArray = JSON.parse(randomRecipesData).recettes;
-      if (Array.isArray(randomRecipesArray)) {
-        return randomRecipesArray.map((suggestion, index) => (
-          <div className="card recette-preview recette ml-4 mr-4" key={index}>
-            <div className="card-image">
-              <figure className="image is-6by3">
-                <img src="https://assets.afcdn.com/recipe/20211214/125831_w1024h768c1cx866cy866.jpg" alt="Placeholder image" />
-              </figure>
-            </div>
-            <div className="card-content">
-              <div className="content">
-                <p className="title is-6"> {suggestion}</p>
+      return randomRecipesFullData.map((item, index) => (
+        <div className="card recette-preview recette ml-4 mr-4" key={index}>
+          <div className="card-image">
+            <figure className="image is-6by3">
+              <img src={item[0].photo} alt="Placeholder image" style={{ height: "10rem" }} />
+            </figure>
+          </div>
+          <div className="card-content">
+            <div className="content">
+              <p className="title is-6" style={{"height": "27px"}}> {item[0].titre}</p>
+              <div className="temps-preparation" style={{"display" : "flex", 'alignItems' : 'center'}}>
+                <img src="src/assets/lhorloge.png" style={{ width: "25px", 'marginRight' : "4px"  }} ></img>
+                {item[0].tempspreparation} mins
               </div>
             </div>
           </div>
-        ));
-      } else {
-        throw new Error("Format invalide : 'recettes' devrait être un tableau.");
-      }
+        </div>
+      ));
     } catch (error) {
       console.error("Erreur lors de l'analyse des suggestions :", error.message);
       return null;
     }
-  }
+  };
 
+  const handleRecetteSuggestionsDetail = (randomRecipesData) => {
+    const recettesTitles = JSON.parse(randomRecipesData).recettes;
+    axios.post('http://localhost:5000/fetchRecettesByTitle', { recettesTitles })
+      .then(response => {
+        const jsonObject = response.data.recettesData;
+        setRandomRecipesFullData(jsonObject);
+      })
+  }
 
   return (
     <div>
@@ -93,11 +103,11 @@ export default function MainPage() {
         ) : null}
       </div>
       <div className="heroSubtitle">
-        Envie de ?<br />
+        Envie de ? <br />
       </div>
-      {randomRecipes ? (
+      {randomRecipesFullData ? (
         <div className="home-suggestion-cards-wrapper">
-          {parseRandomRecipes(randomRecipes)}
+          {parseRandomRecipes(randomRecipesFullData)}
         </div>
       ) : null}
     </div>
