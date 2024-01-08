@@ -63,7 +63,12 @@ app.post("/fetchTitles", async (req, res) => {
 
 async function fetchRecettesByTitle(recettes) {
   try {
-    const recettesArray = JSON.parse(recettes);
+    let recettesArray = [];
+    if (typeof recettes == "object") {
+      recettesArray = Object.values(recettes);
+    } else {
+      recettesArray = JSON.parse(recettes);
+    }
     const client = await pool.connect();
     const promises = recettesArray.map((recette) => {
       return client.query("SELECT * FROM recettes WHERE titre = $1", [recette]);
@@ -125,7 +130,7 @@ async function fetchSimilarRecipes(recetteTitle) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'.` },
+        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte` },
       ],
       format: "json",
     });
@@ -142,6 +147,7 @@ app.get("/fetchSimilarRecipes", async (req, res) => {
   const titre = req.query.titre;
   try {
     const similarRecipes = await fetchSimilarRecipes(titre);
+    console.log(similarRecipes);
     res.json({ similarRecipes });
   } catch (error) {
     console.error("Error processing request", error);
@@ -319,9 +325,9 @@ app.post("/recettes/:id/accompagnements/", async (req, res) => {
   try {
     const recetteId = req.params.id;
     const recette = await fetchRecetteById(recetteId);
-    const accompagnement = await generateAccompagnement(recette);
+    const accompagnements = await generateAccompagnement(recette);
 
-    res.json({ accompagnement });
+    res.json({ accompagnements });
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");

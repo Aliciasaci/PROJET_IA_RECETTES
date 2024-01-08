@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display&display=swap');
 
 .logo {
   font-family: "Agbalumo";
@@ -88,6 +89,7 @@ html {}
 
 .recette-preview {
   width: 15rem;
+  border-radius: 17px;
 }
 
 
@@ -110,6 +112,7 @@ html {}
   margin-top: 2rem;
   padding-bottom: 3rem;
   position: relative;
+  box-shadow: none;
 }
 
 .recettes-suggestions-wrapper {
@@ -264,4 +267,30 @@ background-color: rgb(255, 255, 213);
 
 .shareon{
   margin-top: 1rem;
+}
+
+.intructions-numbers{
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.instructions>h2{
+  font-family: 'Playfair Display', serif;
+}
+
+.instructions ul{
+  list-style: none;
+}
+
+.ingredients>h2{
+  font-family: 'Playfair Display', serif;
+}
+
+.ingredients ul{
+  list-style: none;
+}
+
+.recette-title{
+  font-family: 'Playfair Display', serif;
 }
