@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useRef, forwardRef, useState, useEffect } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -13,14 +13,30 @@ import axios from 'axios';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 
-const Alert = React.forwardRef(function Alert(props, ref) {
+const Alert = forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
 export default function SignUpForm() {
-  const [open, setOpen] = React.useState(false);
+  const userRef = useRef();
+  const [open, setOpen] = useState(false);
 
-  const handleClick = () => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const [errMsg, setErrMsg] = useState(''); 
+
+  useEffect(() => {
+    userRef.current.focus();
+  }, []);
+
+  useEffect(() => {
+    setErrMsg('');
+  }, [firstName, lastName, email, password]);
+
+  const handleSuccess = () => {
     setOpen(true);
   };
 
@@ -32,29 +48,38 @@ export default function SignUpForm() {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    axios.post('http://localhost:5000/signUp', {
-      nom: data.get('lastName'),
-      prenom: data.get('firstName'),
-      email: data.get('email'),
-      password: data.get('password'),
-      })
-    .then(response => {
-      console.log(response);
-      handleClick();
-    })
-    .catch(error => {
-      console.error(error);
-    });
+
+    try {
+      const response = await axios.post('http://localhost:5000/signUp',
+        JSON.stringify({ nom: lastName, prenom: firstName, email, password }),
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        });
+        console.log(JSON.stringify(response))
+        handleSuccess();    
+    } catch (error) {
+        if (!error?.response) {
+          setErrMsg('Erreur réseau');
+        } else if (error.response?.status === 400) {
+          setErrMsg('Champ(s) manquant(s)');
+        } else if (error.response?.status === 409) {
+          setErrMsg('Cet email est déjà utilisé');
+        } else {
+          setErrMsg('Inscription impossible');
+        }
+    }
   };
 
   return (
     <Grid container component="main" sx={{ height: '100vh', overflow: "hidden" }}>
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-          Votre compte a bien été créé !
+        <Alert onClose={handleClose} severity={errMsg ? "error" : "success"} sx={{ width: '100%' }}>
+          {errMsg ? errMsg : "Votre compte a bien été créé !"}
         </Alert>
       </Snackbar>
 
@@ -100,6 +125,8 @@ export default function SignUpForm() {
                 id="firstName"
                 label="Prénom"
                 autoFocus
+                ref={userRef}
+                onChange={(e) => setFirstName(e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -110,6 +137,7 @@ export default function SignUpForm() {
                 label="Nom"
                 name="lastName"
                 autoComplete="family-name"
+                onChange={(e) => setLastName(e.target.value)}
               />
             </Grid>
             <Grid item xs={12}>
@@ -120,6 +148,7 @@ export default function SignUpForm() {
                 label="Adresse email"
                 name="email"
                 autoComplete="email"
+                onChange={(e) => setEmail(e.target.value)}
               />
             </Grid>
             <Grid item xs={12}>
@@ -131,6 +160,7 @@ export default function SignUpForm() {
                 type="password"
                 id="password"
                 autoComplete="new-password"
+                onChange={(e) => setPassword(e.target.value)}
               />
             </Grid>
           </Grid>
