@@ -81,7 +81,7 @@ export default function MainPage() {
   }
 
   return (
-    <div>
+    <div className="heroBackground">
       <div className="heroTitle">
         Bienvenue sur CuisineConnect
       </div>
