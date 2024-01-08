@@ -8,6 +8,7 @@ import MainPage from './page/MainPage';
 import RecetteDetails from './components/RecetteDetails';
 import RecettesSuggestions from './components/RecettesSuggestions';
 import ChatbotModal from './components/ChatbotModal'; // Import the ChatbotModal component
+import RequireAuth from './components/RequireAuth';
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,10 +26,12 @@ function App() {
       <div className="App heroBackground">
         <Header />
         <Routes>
-          <Route path='/' element={<MainPage />} />
           <Route path="/signin" element={<SignInForm />} />
           <Route path="/signup" element={<SignUpForm />} />
-          <Route path="/recetteDetails/:id" element={<RecetteDetails />} />
+          <Route element={<RequireAuth />}>
+            <Route path='/' element={<MainPage />} />
+            <Route path="/recetteDetails/:id" element={<RecetteDetails />} />
+          </Route>
         </Routes>
         <div className='chatbot-icon' onClick={openModal}>
           <img src="../src/assets/chatbot.svg" alt='chatbot'/>
