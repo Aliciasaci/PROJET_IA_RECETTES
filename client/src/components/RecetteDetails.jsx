@@ -13,7 +13,7 @@ export default function Recette() {
 
   const parseInstructionsToList = (string) => {
     const items = string.split(/\s(?=\d\.)/);
-    const listItems = items.map((item, index) => <li key={index}><span className='intructions-numbers'>{index + 1}</span><br />{item}</li>);
+    const listItems = items.map((item, index) => <li key={index}><span className='intructions-numbers'>{index + 1}</span><br />{item.substr(2, item.length)}</li>);
     return <ul>{listItems}</ul>;
   }
 
@@ -110,8 +110,9 @@ export default function Recette() {
               </figure>
             </div>
             <div className="card-content pl-6 pr-6">
-              <div className="media-content">
+              <div className="media-content" style={{"display" : "flex" , "justifyContent": "space-between"}}>
                 <h1 className="title recette-title">{recette.titre}</h1>
+                <span>Temps de preparation : {recette.tempspreparation} min(s)</span>
               </div>
             </div>
 
@@ -125,16 +126,18 @@ export default function Recette() {
               {parseInstructionsToList(recette.instructions)}
             </div>
 
-            <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
-            <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
 
             {accompagnements && (
-              <div className="content pl-6 ">
-                <h2>Accompagnement :</h2>
+              <div className="content pl-6 mt-4 accompagnements">
+                <h2><u>Accompagnement :</u></h2>
 
                 {parseAccompagnementToList(accompagnements)}
               </div>
             )}
+
+            <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
+            <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
+
           </div>
 
         ) : (
