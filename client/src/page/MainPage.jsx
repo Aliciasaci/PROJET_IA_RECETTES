@@ -3,12 +3,45 @@ import SearchBar from "../components/SearchBar";
 import RecettePreview from "../components/RecettePreview";
 import { Typography } from "@mui/material";
 import axios from 'axios';
+import IconButton from '@mui/material/IconButton';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import useFavorites from "../hooks/useFavorites";
+import useAuth from "../hooks/useAuth";
 
 export default function MainPage() {
   const [recettes, setRecettes] = useState(null);
   const [randomRecipes, setRandomRecipes] = useState(null);
   const [randomRecipesFullData, setRandomRecipesFullData] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const { favorites, dispatch } = useFavorites();
+  const { auth } = useAuth();
+
+  const isItemInFavorites = (recette) => {
+    console.log("test favorites", recette, favorites, favorites.some((item) => item.recette_id === recette));
+    return favorites.some((item) => item.recette_id === recette);
+  }
+
+  const addToFavorites = async (recette) => {
+    try {
+      const userId = auth.userId;
+      const response = await axios.post(`http://localhost:5000/recettes/${recette}/favorites`, { userId });
+      if (response.data && response.data.result) {
+        dispatch({ type: "ADD_FAVORITE", payload: response.data.result });
+      }
+    } catch (error) {
+      console.error("Error adding to favorites", error);
+    }
+  }
+
+  const removeFromFavorites = (recette) => {
+    try {
+      const userId = auth.userId;
+      axios.delete(`http://localhost:5000/delete/recettes/${recette}/favorites`, { data: { userId } });
+      dispatch({ type: "REMOVE_FAVORITE", payload: recette });
+    } catch (error) {
+      console.error("Error removing from favorites", error);
+    }
+  }
 
   const handleSearch = (search) => {
     setRecettes(search);
@@ -16,10 +49,11 @@ export default function MainPage() {
 
   async function fetchRandomRecipes() {
     try {
-      const response = await axios.get(`http://localhost:5000/fetchRandomRecipes`);
+      const userId = auth.userId;
+      const response = await axios.get(`http://localhost:5000/fetchRandomRecipes/${userId}`);
       const data = response.data;
       if (response.status === 200) {
-        return data.randomRecipes;
+        return data;
       } else {
         throw new Error(data.message || "Erreur lors de la récupération");
       }
@@ -32,10 +66,11 @@ export default function MainPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const randomRecipesData = await fetchRandomRecipes();
-        setRandomRecipes(randomRecipesData);
+        const data = await fetchRandomRecipes();
+        setRandomRecipes(data.randomRecipes);
+        dispatch({ type: "ADD_ALL_FAVORITE", payload: data.favorites });
         setDataLoaded(true);
-        handleRecetteSuggestionsDetail(randomRecipesData);
+        handleRecetteSuggestionsDetail(data.randomRecipes);
       } catch (error) {
         console.error('Error fetching recipes', error);
       }
@@ -61,6 +96,16 @@ export default function MainPage() {
                 <img src="src/assets/lhorloge.png" style={{ width: "25px", 'marginRight' : "4px"  }} ></img>
                 {item[0].tempspreparation} mins
               </div>
+              {/* { isItemInFavorites(item[0].id) ? (
+                  <IconButton onClick={() => removeFromFavorites(item[0].id)} color="primary" variant="text">
+                    <FavoriteBorderIcon />
+                  </IconButton>
+                ) : (
+                  <IconButton onClick={() => addToFavorites(item[0].id)} color="tertiary" variant="text">
+                    <FavoriteBorderIcon />
+                  </IconButton>
+                )
+              } */}
             </div>
           </div>
         </div>
@@ -97,6 +142,9 @@ export default function MainPage() {
                 className="recette"
                 key={recette[0].id}
                 recette={recette[0]}
+                addToFavorites={addToFavorites}
+                removeFromFavorites={removeFromFavorites}
+                isItemInFavorites={isItemInFavorites}
               />
             ))
           ) : null

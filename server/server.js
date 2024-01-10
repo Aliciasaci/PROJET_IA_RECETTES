@@ -108,12 +108,15 @@ async function fetchRecetteById(recetteId) {
   }
 }
 
-app.get("/fetchRecetteById/:id", async (req, res) => {
+app.get("/fetchRecetteById/:id/:userId", async (req, res) => {
   const recetteId = req.params.id;
+  const userId = req.params.userId;
   try {
     const recetteData = await fetchRecetteById(recetteId);
+    console.log("userId", userId);
+    const favorites = await fetchFavorites(userId);
     if (recetteData) {
-      res.json({ recetteData });
+      res.json({ recetteData, favorites });
     } else {
       res.status(404).json({ message: "Recette non trouvée" });
     }
@@ -175,10 +178,12 @@ async function fetchRandomRecipes() {
   }
 }
 
-app.get("/fetchRandomRecipes", async (req, res) => {
+app.get("/fetchRandomRecipes/:userId", async (req, res) => {
   try {
     const randomRecipes = await fetchRandomRecipes();
-    res.json({ randomRecipes });
+    const { userId } = req.params;
+    const favorites = await fetchFavorites(userId);
+    res.json({ randomRecipes, favorites });
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");
@@ -295,7 +300,7 @@ app.post("/signIn", async (req, res) => {
 
     const accessToken = jwt.sign({ id: user.id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
     res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 3600000 });
-    res.json({ accessToken });
+    res.json({ accessToken, id: user.id, email: user.email, nom: user.nom, prenom: user.prenom });
   } catch (error) {
     console.error("Error", error);
     throw error;
@@ -321,7 +326,6 @@ async function generateAccompagnement(recette) {
 }
 
 app.post("/recettes/:id/accompagnements/", async (req, res) => {
-
   try {
     const recetteId = req.params.id;
     const recette = await fetchRecetteById(recetteId);
@@ -334,8 +338,68 @@ app.post("/recettes/:id/accompagnements/", async (req, res) => {
   }
 });
 
+async function addToFavorites(userId, recetteId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("INSERT INTO favorite_recettes (user_id, recette_id) VALUES ($1, $2) RETURNING *", [userId, recetteId]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
 
+app.post("/recettes/:id/favorites", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    const result = await addToFavorites(userId, id);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
 
+async function fetchFavorites(userId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT * FROM favorite_recettes WHERE user_id = $1", [userId]);
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+async function deleteFromFavorites(userId, recetteId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("DELETE FROM favorite_recettes WHERE user_id = $1 AND recette_id = $2", [userId, recetteId]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.delete("/delete/recettes/:id/favorites", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    const result = await deleteFromFavorites(userId, id);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);

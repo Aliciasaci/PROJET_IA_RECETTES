@@ -5,7 +5,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { CardActions } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-export default function RecettePreview({ recette }) {
+export default function RecettePreview({ recette, addToFavorites, removeFromFavorites, isItemInFavorites  }) {
     return (
         <Card sx={{ width: "15rem", margin: "3rem 1rem", overflow: "visible" }} className='cardboxshadow'>
             <CardMedia
@@ -22,12 +22,16 @@ export default function RecettePreview({ recette }) {
             </CardContent>
             <Divider />
             <CardActions sx={{ display: 'flex', justifyContent: "space-around"}}>
-                <IconButton aria-label="add to favorites" sx={{ borderRadius: "0" }}>
-                    <FavoriteBorderIcon />
-                    <Typography variant="subtitle1" sx={{ color: "rgba(0, 0, 0, 0.54)"}}>
-                        34
-                    </Typography>
-                </IconButton>
+                { isItemInFavorites(recette.id) ? (
+                    <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="primary" variant="text">
+                        <FavoriteBorderIcon />
+                    </IconButton>
+                ) : (
+                    <IconButton aria-label="add-to-favorites" onClick={() => addToFavorites(recette.id)} color="tertiary" variant="text">
+                        <FavoriteBorderIcon />
+                    </IconButton>
+                
+                )}
                 <Divider orientation="vertical" flexItem />
                 <IconButton sx={{ borderRadius: "0"}} aria-label="open" component={Link} to={`/recetteDetails/${recette.id}`} state={recette}>
                     <OpenInNewIcon />

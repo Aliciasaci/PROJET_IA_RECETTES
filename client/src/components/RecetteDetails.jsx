@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import RecettesSuggestions from './RecettesSuggestions';
+import IconButton from '@mui/material/IconButton';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import useAuth from '../hooks/useAuth';
+import useFavorites from '../hooks/useFavorites';
 
 export default function Recette() {
   const { id } = useParams();
@@ -10,6 +14,34 @@ export default function Recette() {
   const [ingredients, setIngredients] = useState('');
   const [listeCourses, setListeCourses] = useState('');
   const [accompagnements, setAccompagnements] = useState('');
+  const { auth } = useAuth();
+  const { favorites, dispatch } = useFavorites();
+
+  const isItemInFavorites = (recette) => {
+    return favorites.some((item) => item.recette_id === recette);
+  }
+
+  const addToFavorites = async (recette) => {
+    try {
+      const userId = auth.userId;
+      const response = await axios.post(`http://localhost:5000/recettes/${recette}/favorites`, { userId });
+      if (response.data && response.data.result) {
+        dispatch({ type: "ADD_FAVORITE", payload: response.data.result });
+      }
+    } catch (error) {
+      console.error("Error adding to favorites", error);
+    }
+  }
+
+  const removeFromFavorites = (recette) => {
+    try {
+      const userId = auth.userId;
+      axios.delete(`http://localhost:5000/delete/recettes/${recette}/favorites`, { data: { userId } });
+      dispatch({ type: "REMOVE_FAVORITE", payload: recette });
+    } catch (error) {
+      console.error("Error removing from favorites", error);
+    }
+  }
 
   const parseInstructionsToList = (string) => {
     const items = string.split(/\s(?=\d\.)/);
@@ -45,14 +77,15 @@ export default function Recette() {
 
   async function fetchRecipeDetails(recipeId) {
     try {
-      const response = await axios.get(`http://localhost:5000/fetchRecetteById/${recipeId}`);
+      const userId = auth.userId;
+      const response = await axios.get(`http://localhost:5000/fetchRecetteById/${recipeId}/${userId}`);
       const data = response.data;
       if (response.status === 200) {
 
         const similarRecipesTemp = await axios.get(`http://localhost:5000/fetchSimilarRecipes?titre=${data.recetteData.titre}`);
         setSimilarRecipes(similarRecipesTemp.data.similarRecipes);
 
-        return data.recetteData;
+        return data;
       } else {
         throw new Error(data.message || "Erreur lors de la récupération des détails de la recette");
       }
@@ -87,8 +120,9 @@ export default function Recette() {
       try {
         if (id) {
           const recipeData = await fetchRecipeDetails(id);
-          setRecette(recipeData);
-          setIngredients(recipeData.ingredients)
+          setRecette(recipeData.recetteData);
+          setIngredients(recipeData.ingredients);
+          dispatch({ type: "ADD_ALL_FAVORITE", payload: recipeData.favorites });
         }
       } catch (error) {
         console.error('Error fetching recipe details', error);
@@ -113,6 +147,16 @@ export default function Recette() {
               <div className="media-content">
                 <h1 className="title recette-title">{recette.titre}</h1>
               </div>
+              { isItemInFavorites(recette.id) ? (
+                    <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="primary" variant="text">
+                        <FavoriteBorderIcon />
+                    </IconButton>
+                ) : (
+                    <IconButton aria-label="add-to-favorites" onClick={() => addToFavorites(recette.id)} color="tertiary" variant="text">
+                        <FavoriteBorderIcon />
+                    </IconButton>
+                
+                )}
             </div>
 
             <div className="content pl-6 ingredients">

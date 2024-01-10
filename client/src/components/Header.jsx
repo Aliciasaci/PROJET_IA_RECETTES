@@ -31,7 +31,7 @@ export default function Header() {
                   ? (
                     <>
                       <Button className="signin-btn mr-2" component={Link} to={"/me"} style={{ color: 'black', border : '1px solid orangered', padding: '0.5rem 1rem' }}>
-                        {auth.email }
+                        Bienvenue { auth.nom } { auth.prenom}
                       </Button>
                       <Button className="signup-btn" component={Link} to={"/"} style={{ color: 'white', backgroundColor: 'orangered', padding: '0.5rem 1rem' }} onClick={() => setAuth({})}>
                         Se déconnecter
