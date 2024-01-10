@@ -96,7 +96,8 @@ export default function MainPage() {
           : null}
       </div>
       <div className="heroSubtitle">
-        Envie de ? Viens nous le dire.<br />
+        Envie de ? Venez nous le dire.
+        <br />
       </div>
       {randomRecipesFullData ? (
         <div className="home-suggestion-cards-wrapper">

@@ -36,7 +36,7 @@ function App() {
           </Route>
         </Routes>
         <div className="chatbot-icon" onClick={openModal}>
-          <img src="../src/assets/chatbot.svg" alt="chatbot" />
+          <img src="../src/assets/chefIcon.png" alt="chatbot" />
         </div>
         <ChatbotModal isOpen={isModalOpen} onRequestClose={closeModal} />
       </div>
