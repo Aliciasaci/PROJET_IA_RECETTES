@@ -173,7 +173,7 @@ async function fetchRandomRecipes() {
           role: "system",
           content: `En te basant sur ces recettes ${JSON.stringify(
             recettes
-          )}. proposes 5 recette aléatoirs. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'`,
+          )}. proposes 5 recette aléatoires. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'`,
         },
       ],
     });

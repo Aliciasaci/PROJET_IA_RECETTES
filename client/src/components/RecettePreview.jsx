@@ -1,14 +1,10 @@
 import * as React from "react";
 import {
   Card,
-  CardHeader,
   CardMedia,
   CardContent,
   Typography,
   IconButton,
-  Divider,
-  Rating,
-  Box,
 } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { CardActions } from "@mui/material";
