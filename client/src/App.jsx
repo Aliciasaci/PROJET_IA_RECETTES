@@ -35,8 +35,8 @@ function App() {
             <Route path='/me' element={<UserProfile />} />
           </Route>
         </Routes>
-        <div className='chatbot-icon' onClick={openModal}>
-          <img src="../src/assets/chatbot.svg" alt='chatbot'/>
+        <div className="chatbot-icon" onClick={openModal}>
+          <img src="../src/assets/chatbot.svg" alt="chatbot" />
         </div>
         <ChatbotModal isOpen={isModalOpen} onRequestClose={closeModal} />
       </div>

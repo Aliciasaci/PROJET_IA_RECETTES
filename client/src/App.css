@@ -163,11 +163,7 @@ html {}
 }
 
 .ReactModal__Content input {
-  position: absolute;
-  bottom: 2%;
-  left: 0%;
-  margin: 1rem;
-  width: 21rem;
+  margin-right: 1rem;
 }
 
 .ReactModal__Content span {

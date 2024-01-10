@@ -12,7 +12,7 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const corsOptions = require("./config/corsOptions");
 const credentials = require("./middleware/credentials");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 app.use(credentials);
 app.use(cors(corsOptions));
@@ -94,11 +94,12 @@ app.post("/fetchRecettesByTitle", async (req, res) => {
   }
 });
 
-
 async function fetchRecetteById(recetteId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT * FROM recettes WHERE id = $1", [recetteId]);
+    const result = await client.query("SELECT * FROM recettes WHERE id = $1", [
+      recetteId,
+    ]);
     const data = result.rows[0];
     client.release();
     return data;
@@ -126,14 +127,20 @@ app.get("/fetchRecetteById/:id/:userId", async (req, res) => {
   }
 });
 
-
 async function fetchSimilarRecipes(recetteTitle) {
   const recettes = await fetchRecettes();
   try {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte` },
+        {
+          role: "system",
+          content: `En te basant sur ces recettes ${JSON.stringify(
+            recettes
+          )}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(
+            recetteTitle
+          )}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte`,
+        },
       ],
       format: "json",
     });
@@ -158,15 +165,19 @@ app.get("/fetchSimilarRecipes", async (req, res) => {
   }
 });
 
-
-//* generate random recipes 
+//* generate random recipes
 async function fetchRandomRecipes() {
   const recettes = await fetchRecettes();
   try {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. proposes 5 recette aléatoirs. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'` },
+        {
+          role: "system",
+          content: `En te basant sur ces recettes ${JSON.stringify(
+            recettes
+          )}. proposes 5 recette aléatoirs. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'`,
+        },
       ],
     });
 
@@ -196,7 +207,12 @@ async function generateGroceriesList(ingredients) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `Propose une liste d'ingrédient à acheter en te basant sur ces besoin :   ${JSON.stringify(ingredients)}. renvoi un objet json dont la clè du json est le terme 'ingredients'.` },
+        {
+          role: "system",
+          content: `Propose une liste d'ingrédient à acheter en te basant sur ces besoin :   ${JSON.stringify(
+            ingredients
+          )}. renvoi un objet json dont la clè du json est le terme 'ingredients'.`,
+        },
       ],
     });
 
@@ -224,7 +240,9 @@ app.post("/groceries", async (req, res) => {
 async function checkIfEmailAlreadyExists(email) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT * FROM users WHERE email = $1", [email]);
+    const result = await client.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
     const data = result.rows[0];
     client.release();
     return data;
@@ -237,7 +255,10 @@ async function checkIfEmailAlreadyExists(email) {
 async function signUp(user) {
   try {
     const client = await pool.connect();
-    const result = await client.query("INSERT INTO users (nom, prenom, email, password) VALUES ($1, $2, $3, $4)", [user.nom, user.prenom, user.email, user.password]);
+    const result = await client.query(
+      "INSERT INTO users (nom, prenom, email, password) VALUES ($1, $2, $3, $4)",
+      [user.nom, user.prenom, user.email, user.password]
+    );
     const data = result.rows[0];
     client.release();
     return data;
@@ -249,9 +270,11 @@ async function signUp(user) {
 
 app.post("/signUp", async (req, res) => {
   const { nom, prenom, email, password } = req.body;
-  if (!nom || !prenom || !email || !password) return res.status(400).json({ message: "Champ(s) manquant(s)" });
+  if (!nom || !prenom || !email || !password)
+    return res.status(400).json({ message: "Champ(s) manquant(s)" });
   const duplicateEmail = await checkIfEmailAlreadyExists(email);
-  if (duplicateEmail) return res.status(409).json({ message: "Email déjà utilisé" });
+  if (duplicateEmail)
+    return res.status(409).json({ message: "Email déjà utilisé" });
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
@@ -271,7 +294,9 @@ app.post("/signUp", async (req, res) => {
 async function signIn(email, password) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT * FROM users WHERE email = $1", [email]);
+    const result = await client.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
     const data = result.rows[0];
 
     if (!data) {
@@ -294,11 +319,16 @@ async function signIn(email, password) {
 
 app.post("/signIn", async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: "Email ou mot de passe incorrect" });
+  if (!email || !password)
+    return res.status(400).json({ message: "Email ou mot de passe incorrect" });
   try {
     const user = await signIn(email, password);
 
-    const accessToken = jwt.sign({ id: user.id, email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
+    const accessToken = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
     res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 3600000 });
     res.json({ accessToken, id: user.id, email: user.email, nom: user.nom, prenom: user.prenom });
   } catch (error) {
@@ -313,7 +343,12 @@ async function generateAccompagnement(recette) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `Proposes des accompagnements à la recette suivante : ${JSON.stringify(recette)}. Les accompagnements doivent être des vins ou des frommages et un dessert sucré ou salé. renvoi un objet json dont la clè du json est le terme 'accompagnements'.` },
+        {
+          role: "system",
+          content: `Proposes des accompagnements à la recette suivante : ${JSON.stringify(
+            recette
+          )}. Les accompagnements doivent être des vins ou des frommages et un dessert sucré ou salé. renvoi un objet json dont la clè du json est le terme 'accompagnements'.`,
+        },
       ],
     });
 
@@ -398,6 +433,42 @@ app.delete("/delete/recettes/:id/favorites", async (req, res) => {
   } catch (error) {
     console.error("Error", error);
     throw error;
+  }
+});
+
+async function chatBot(messages) {
+  try {
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Tu répondras avec l'expertise d'un chef étoilé au guide michelin ayant une 15aines d’années d’expérience dans le métier avec plusieurs concours culinaires gagnés à l’internationnal",
+        },
+        {
+          role: "user",
+          content: JSON.stringify(messages),
+        },
+      ],
+    });
+
+    const response = completions.choices[0].message.content;
+    return response;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.post("/chatbot", async (req, res) => {
+  try {
+    const messages = req.body.question;
+    const response = await chatBot(messages);
+    res.json({ response });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
   }
 });
 

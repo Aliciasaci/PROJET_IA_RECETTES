@@ -6,6 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import useAuth from '../hooks/useAuth';
 import useFavorites from '../hooks/useFavorites';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export default function Recette() {
   const { id } = useParams();
@@ -144,19 +145,20 @@ export default function Recette() {
               </figure>
             </div>
             <div className="card-content pl-6 pr-6">
-              <div className="media-content">
-                <h1 className="title recette-title">{recette.titre}</h1>
-              </div>
-              { isItemInFavorites(recette.id) ? (
-                    <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="primary" variant="text">
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div className="media-content">
+                  <h1 className="title recette-title">{recette.titre}</h1>
+                </div>
+                { isItemInFavorites(recette.id) ? (
+                    <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="error" variant="text">
+                        <FavoriteIcon />
+                    </IconButton>
+                  ) : (
+                    <IconButton aria-label="add-to-favorites"onClick={() => addToFavorites(recette.id)} color="error" variant="text">
                         <FavoriteBorderIcon />
                     </IconButton>
-                ) : (
-                    <IconButton aria-label="add-to-favorites" onClick={() => addToFavorites(recette.id)} color="tertiary" variant="text">
-                        <FavoriteBorderIcon />
-                    </IconButton>
-                
                 )}
+              </div>
             </div>
 
             <div className="content pl-6 ingredients">
