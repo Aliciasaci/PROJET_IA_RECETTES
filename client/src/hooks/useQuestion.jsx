@@ -5,38 +5,32 @@ export const useQuestion = () => {
   const [question, setQuestion] = useState("");
   const [questionLoading, setQuestionLoading] = useState(false);
   const [questionError, setQuestionError] = useState(null);
-  const [answer, setAnswer] = useState("");
+  const [messages, setMessages] = useState([]);
 
   const updateQuestion = useCallback((event) => {
     setQuestion(event.target.value);
   }, []);
 
   const sendQuestion = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
+      const input = question;
       setQuestionLoading(true);
       setQuestionError(null);
 
       axios
         .post("http://localhost:5000/chatBot", {
-          question,
+          input,
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
         })
         .then((response) => {
-          console.log(response);
-
-          return response.json();
-        })
-        .then((json) => {
-          const validation = JSON.parse(json);
-
-          return validation.data;
+          return response;
         })
         .then((data) => {
-          setAnswer(data.response);
+          setMessages((prevMessages) => [...prevMessages, data.data.response]);
         })
         .catch((error) => {
           if (error instanceof Error) {
@@ -48,17 +42,19 @@ export const useQuestion = () => {
         .finally(() => {
           setQuestionLoading(false);
         });
+      setQuestion("");
     },
-    [question]
+    [question, messages]
   );
 
   return {
     question,
-    answer,
     questionLoading,
     questionError,
     updateQuestion,
     sendQuestion,
+    messages,
+    setMessages,
   };
 };
 

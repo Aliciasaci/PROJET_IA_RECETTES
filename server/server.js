@@ -461,7 +461,7 @@ async function chatBot(messages) {
         {
           role: "system",
           content:
-            "Tu répondras avec l'expertise d'un chef étoilé au guide michelin ayant une 15aines d’années d’expérience dans le métier avec plusieurs concours culinaires gagnés à l’internationnal",
+            "Tu répondras, en 300 caractères maximum et avec l'expertise d'un chef étoilé au guide michelin ayant une 15aines d’années d’expérience dans le métier avec plusieurs concours culinaires gagnés à l’internationnal. Ton nom est Jean Bonboeur.",
         },
         {
           role: "user",
@@ -480,7 +480,7 @@ async function chatBot(messages) {
 
 app.post("/chatbot", async (req, res) => {
   try {
-    const messages = req.body.question;
+    const messages = req.body.input;
     const response = await chatBot(messages);
     res.json({ response });
   } catch (error) {

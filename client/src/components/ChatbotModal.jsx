@@ -12,48 +12,120 @@ function ChatbotModal({ isOpen, onRequestClose }) {
     questionError,
     updateQuestion,
     sendQuestion,
-    answer,
+    messages,
+    setMessages,
   } = useQuestion();
+  const messageEndRef = React.useRef(null);
 
-  if (questionLoading) {
+  React.useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const questionLoadingFunc = () => {
     return (
-      <Stack spacing={3}>
-        <CircularProgress sx={{ alignSelf: "center" }} />
-        <Typography align="center" variant="h4">
-          Chargement
-        </Typography>
-        <Typography align="center">
-          La réponse est en cours de chargement, merci de patienter quelques
-          instants...
-        </Typography>
+      <Stack>
+        <CircularProgress
+          size="20px"
+          style={{
+            margin: "0.5rem 0 1rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "1rem",
+            border: "1px solid orangered",
+          }}
+        />
       </Stack>
     );
-  }
+  };
 
-  if (questionError) {
+  const questionErrorFunc = () => {
     return (
-      <Stack spacing={3}>
-        <Typography align="center" variant="h4">
-          Erreur
-        </Typography>
-        <Typography align="center">{questionError}</Typography>
+      <Stack>
+        <Typography color={"orangered"}>Erreur:</Typography>
+        <Typography color={"orangered"}>{questionError}</Typography>
       </Stack>
     );
-  }
+  };
+
+  const handleQuestion = (event) => {
+    setMessages((prevMessages) => [...prevMessages, question]);
+    sendQuestion(event);
+  };
+
+  const styleMessages = React.useCallback(() => {
+    return messages.map((message, index) => {
+      return index % 2 === 0 ? (
+        <div
+          key={index}
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            margin: "0.5rem 0",
+          }}
+        >
+          <Typography
+            style={{
+              backgroundColor: "orangered",
+              color: "white",
+              width: "fit-content",
+              borderRadius: "1rem",
+              padding: "0.5rem 1rem",
+            }}
+          >
+            {message}
+          </Typography>
+        </div>
+      ) : (
+        <div
+          key={index}
+          style={{
+            margin: "0.5rem 0",
+            maxWidth: "75%",
+          }}
+        >
+          <Typography
+            style={{
+              padding: "0.5rem 1rem",
+              width: "fit-content",
+              borderRadius: "1rem",
+              border: "1px solid orangered",
+            }}
+          >
+            {message}
+          </Typography>
+        </div>
+      );
+    });
+  }, [messages]);
 
   return (
-    <Stack spacing={3} component="form" onSubmit={sendQuestion}>
+    <Stack spacing={3} component="form" onSubmit={handleQuestion}>
       <Modal
         isOpen={isOpen}
         onRequestClose={onRequestClose}
         contentLabel="Chatbot Modal"
         style={{ display: "flex" }}
       >
-        <span onClick={onRequestClose} style={{ cursor: "pointer" }}>
+        <span
+          onClick={onRequestClose}
+          style={{
+            cursor: "pointer",
+            alignSelf: "flex-end",
+          }}
+        >
           ❌
         </span>
-        <div></div>
-        {answer && <Typography>{answer}</Typography>}
+        <div
+          style={{
+            margin: "2rem 0 1rem",
+            height: "100%",
+            overflowY: "auto",
+          }}
+        >
+          {messages && styleMessages()}
+          {questionLoading && questionLoadingFunc()}
+          {questionError && questionErrorFunc()}
+          <div ref={messageEndRef} />
+        </div>
         <div
           style={{
             display: "flex",
@@ -76,7 +148,7 @@ function ChatbotModal({ isOpen, onRequestClose }) {
               padding: "0 1rem",
               marginBottom: "0.3rem",
             }}
-            onClick={sendQuestion}
+            onClick={handleQuestion}
           >
             Demander
           </Button>
