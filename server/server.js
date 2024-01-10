@@ -41,7 +41,7 @@ app.post("/fetchTitles", async (req, res) => {
       role: "system",
       content: `En te basant sur ces données ${JSON.stringify(
         recettes
-      )} et la demande que l'utilisateur te fait. Renvoi SEULEMENT un tableau (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande. la demande peut être par temps de préparation. par catégorie de recette et par ingrédients.`,
+      )} et la demande que l'utilisateur te fait. Renvoie SEULEMENT une array de string (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc]. Pas un objet JSON la demande peut être par temps de préparation. par catégorie de recette et par ingrédients.`,
     });
 
     //demande utiliasteur
@@ -54,6 +54,7 @@ app.post("/fetchTitles", async (req, res) => {
     });
 
     const assistantResponse = completions.choices[0].message.content;
+    console.log(assistantResponse);
     res.json({ assistantResponse });
   } catch (error) {
     console.error("Error processing request", error);
@@ -64,6 +65,7 @@ app.post("/fetchTitles", async (req, res) => {
 async function fetchRecettesByTitle(recettes) {
   try {
     let recettesArray = [];
+    console.log("recettes", recettes);
     if (typeof recettes == "object") {
       recettesArray = Object.values(recettes);
     } else {
@@ -139,7 +141,7 @@ async function fetchSimilarRecipes(recetteTitle) {
             recettes
           )}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(
             recetteTitle
-          )}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte`,
+          )}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte, et supprime l'echappement des caractères.`,
         },
       ],
       format: "json",
@@ -330,7 +332,13 @@ app.post("/signIn", async (req, res) => {
       { expiresIn: "1h" }
     );
     res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 3600000 });
-    res.json({ accessToken, id: user.id, email: user.email, nom: user.nom, prenom: user.prenom });
+    res.json({
+      accessToken,
+      id: user.id,
+      email: user.email,
+      nom: user.nom,
+      prenom: user.prenom,
+    });
   } catch (error) {
     console.error("Error", error);
     throw error;
@@ -376,7 +384,10 @@ app.post("/recettes/:id/accompagnements/", async (req, res) => {
 async function addToFavorites(userId, recetteId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("INSERT INTO favorite_recettes (user_id, recette_id) VALUES ($1, $2) RETURNING *", [userId, recetteId]);
+    const result = await client.query(
+      "INSERT INTO favorite_recettes (user_id, recette_id) VALUES ($1, $2) RETURNING *",
+      [userId, recetteId]
+    );
     const data = result.rows[0];
     client.release();
     return data;
@@ -401,7 +412,10 @@ app.post("/recettes/:id/favorites", async (req, res) => {
 async function fetchFavorites(userId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT * FROM favorite_recettes WHERE user_id = $1", [userId]);
+    const result = await client.query(
+      "SELECT * FROM favorite_recettes WHERE user_id = $1",
+      [userId]
+    );
     const data = result.rows;
     client.release();
     return data;
@@ -414,7 +428,10 @@ async function fetchFavorites(userId) {
 async function deleteFromFavorites(userId, recetteId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("DELETE FROM favorite_recettes WHERE user_id = $1 AND recette_id = $2", [userId, recetteId]);
+    const result = await client.query(
+      "DELETE FROM favorite_recettes WHERE user_id = $1 AND recette_id = $2",
+      [userId, recetteId]
+    );
     const data = result.rows[0];
     client.release();
     return data;
