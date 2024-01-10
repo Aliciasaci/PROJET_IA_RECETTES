@@ -9,7 +9,8 @@
     "runrecettes": "node ./scripts/runrecettes.js",
     "fillrecettes": "node ./scripts/fillrecettes.js",
     "runusers": "node ./scripts/runusers.js",
-    "runfeedback": "node ./scripts/runfeedback.js"
+    "runfeedback": "node ./scripts/runfeedback.js",
+    "runfull": "node ./scripts/runtablesfull.js"
   },
   "author": "",
   "license": "ISC",
