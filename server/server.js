@@ -114,7 +114,6 @@ app.get("/fetchRecetteById/:id/:userId", async (req, res) => {
   const userId = req.params.userId;
   try {
     const recetteData = await fetchRecetteById(recetteId);
-    console.log("userId", userId);
     const favorites = await fetchFavorites(userId);
     if (recetteData) {
       res.json({ recetteData, favorites });
@@ -469,6 +468,55 @@ app.post("/chatbot", async (req, res) => {
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+async function addRating(userId, recetteId, rating) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("INSERT INTO rating (user_id, recette_id, note) VALUES ($1, $2, $3) RETURNING *", [userId, recetteId, rating]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.post("/recettes/:id/rating", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, newRating } = req.body;
+    const result = await addRating(userId, id, newRating);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function getRating(recetteId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT recette_id, AVG(note) as avg_note FROM rating WHERE recette_id = $1 GROUP BY recette_id", [recetteId]);
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.get("/recettes/:id/rating", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await getRating(id);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
   }
 });
 

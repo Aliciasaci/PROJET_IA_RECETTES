@@ -24,7 +24,6 @@ export default function RecettePreview({ recette }) {
   const { auth } = useAuth();
 
   const isItemInFavorites = (recette) => {
-    console.log("test favorites", recette, favorites, favorites.some((item) => item.recette_id === recette));
     return favorites.some((item) => item.recette_id === recette);
   }
 

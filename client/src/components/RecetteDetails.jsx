@@ -7,6 +7,8 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import useAuth from '../hooks/useAuth';
 import useFavorites from '../hooks/useFavorites';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import RecetteRating from './RecetteRating';
+import Typography from '@mui/material/Typography';
 
 export default function Recette() {
   const { id } = useParams();
@@ -181,6 +183,10 @@ export default function Recette() {
                 {parseAccompagnementToList(accompagnements)}
               </div>
             )}
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+              <Typography component="legend">Donnez votre avis : </Typography>
+              <RecetteRating recette={recette.id} />
+            </div>
           </div>
 
         ) : (
