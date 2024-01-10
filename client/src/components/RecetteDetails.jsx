@@ -11,6 +11,8 @@ import * as Shareon from "shareon";
 import "shareon/css";
 import domtoimage from 'dom-to-image';
 
+import RecetteRating from './RecetteRating';
+import Typography from '@mui/material/Typography';
 
 export default function Recette() {
 
@@ -197,6 +199,10 @@ export default function Recette() {
             <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
             <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
 
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+              <Typography component="legend">Donnez votre avis : </Typography>
+              <RecetteRating recette={recette.id} />
+            </div>
           </div>
 
         ) : (

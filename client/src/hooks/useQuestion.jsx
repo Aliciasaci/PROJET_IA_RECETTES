@@ -19,21 +19,14 @@ export const useQuestion = () => {
 
       axios
         .post("http://localhost:5000/chatBot", {
-          method: "POST",
+          question,
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            question,
-          }),
         })
         .then((response) => {
-          if (!response.ok) {
-            throw new Error(
-              "Une erreur est survenue, merci de réessayer ultérieurement"
-            );
-          }
+          console.log(response);
 
           return response.json();
         })

@@ -41,7 +41,7 @@ app.post("/fetchTitles", async (req, res) => {
       role: "system",
       content: `En te basant sur ces données ${JSON.stringify(
         recettes
-      )} et la demande que l'utilisateur te fait. Renvoi SEULEMENT un tableau (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande. la demande peut être par temps de préparation. par catégorie de recette et par ingrédients.`,
+      )} et la demande que l'utilisateur te fait. Renvoie SEULEMENT une array de string (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc]. Pas un objet JSON la demande peut être par temps de préparation. par catégorie de recette et par ingrédients.`,
     });
 
     //demande utiliasteur
@@ -54,6 +54,7 @@ app.post("/fetchTitles", async (req, res) => {
     });
 
     const assistantResponse = completions.choices[0].message.content;
+    console.log(assistantResponse);
     res.json({ assistantResponse });
   } catch (error) {
     console.error("Error processing request", error);
@@ -64,6 +65,7 @@ app.post("/fetchTitles", async (req, res) => {
 async function fetchRecettesByTitle(recettes) {
   try {
     let recettesArray = [];
+    console.log("recettes", recettes);
     if (typeof recettes == "object") {
       recettesArray = Object.values(recettes);
     } else {
@@ -114,7 +116,6 @@ app.get("/fetchRecetteById/:id/:userId", async (req, res) => {
   const userId = req.params.userId;
   try {
     const recetteData = await fetchRecetteById(recetteId);
-    console.log("userId", userId);
     const favorites = await fetchFavorites(userId);
     if (recetteData) {
       res.json({ recetteData, favorites });
@@ -133,7 +134,18 @@ async function fetchSimilarRecipes(recetteTitle) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
+<<<<<<< HEAD
         { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante: ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte. renvoie exactement 5 recettes. ne renvoie jamais la recette sur laquelle tu te base. ` },
+=======
+        {
+          role: "system",
+          content: `En te basant sur ces recettes ${JSON.stringify(
+            recettes
+          )}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(
+            recetteTitle
+          )}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte, et supprime l'echappement des caractères.`,
+        },
+>>>>>>> b23af1269bb5bae049ec9a8268cd6d087c387a05
       ],
       format: "json",
     });
@@ -169,7 +181,7 @@ async function fetchRandomRecipes() {
           role: "system",
           content: `En te basant sur ces recettes ${JSON.stringify(
             recettes
-          )}. proposes 5 recette aléatoirs. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'`,
+          )}. proposes 5 recette aléatoires. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'`,
         },
       ],
     });
@@ -323,7 +335,13 @@ app.post("/signIn", async (req, res) => {
       { expiresIn: "1h" }
     );
     res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 3600000 });
-    res.json({ accessToken, id: user.id, email: user.email, nom: user.nom, prenom: user.prenom });
+    res.json({
+      accessToken,
+      id: user.id,
+      email: user.email,
+      nom: user.nom,
+      prenom: user.prenom,
+    });
   } catch (error) {
     console.error("Error", error);
     throw error;
@@ -369,7 +387,10 @@ app.post("/recettes/:id/accompagnements/", async (req, res) => {
 async function addToFavorites(userId, recetteId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("INSERT INTO favorite_recettes (user_id, recette_id) VALUES ($1, $2) RETURNING *", [userId, recetteId]);
+    const result = await client.query(
+      "INSERT INTO favorite_recettes (user_id, recette_id) VALUES ($1, $2) RETURNING *",
+      [userId, recetteId]
+    );
     const data = result.rows[0];
     client.release();
     return data;
@@ -394,7 +415,10 @@ app.post("/recettes/:id/favorites", async (req, res) => {
 async function fetchFavorites(userId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT * FROM favorite_recettes WHERE user_id = $1", [userId]);
+    const result = await client.query(
+      "SELECT * FROM favorite_recettes WHERE user_id = $1",
+      [userId]
+    );
     const data = result.rows;
     client.release();
     return data;
@@ -407,7 +431,10 @@ async function fetchFavorites(userId) {
 async function deleteFromFavorites(userId, recetteId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("DELETE FROM favorite_recettes WHERE user_id = $1 AND recette_id = $2", [userId, recetteId]);
+    const result = await client.query(
+      "DELETE FROM favorite_recettes WHERE user_id = $1 AND recette_id = $2",
+      [userId, recetteId]
+    );
     const data = result.rows[0];
     client.release();
     return data;
@@ -462,6 +489,55 @@ app.post("/chatbot", async (req, res) => {
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+async function addRating(userId, recetteId, rating) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("INSERT INTO rating (user_id, recette_id, note) VALUES ($1, $2, $3) RETURNING *", [userId, recetteId, rating]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.post("/recettes/:id/rating", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, newRating } = req.body;
+    const result = await addRating(userId, id, newRating);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function getRating(recetteId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT recette_id, AVG(note) as avg_note FROM rating WHERE recette_id = $1 GROUP BY recette_id", [recetteId]);
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.get("/recettes/:id/rating", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await getRating(id);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
   }
 });
 
