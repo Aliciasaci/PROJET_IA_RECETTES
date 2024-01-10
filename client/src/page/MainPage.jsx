@@ -3,12 +3,18 @@ import SearchBar from "../components/SearchBar";
 import RecettePreview from "../components/RecettePreview";
 import { Typography } from "@mui/material";
 import axios from 'axios';
+import IconButton from '@mui/material/IconButton';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import useFavorites from "../hooks/useFavorites";
+import useAuth from "../hooks/useAuth";
 
 export default function MainPage() {
   const [recettes, setRecettes] = useState(null);
   const [randomRecipes, setRandomRecipes] = useState(null);
   const [randomRecipesFullData, setRandomRecipesFullData] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const { favorites, dispatch } = useFavorites();
+  const { auth } = useAuth();
 
   const handleSearch = (search) => {
     setRecettes(search);
@@ -16,10 +22,11 @@ export default function MainPage() {
 
   async function fetchRandomRecipes() {
     try {
-      const response = await axios.get(`http://localhost:5000/fetchRandomRecipes`);
+      const userId = auth.userId;
+      const response = await axios.get(`http://localhost:5000/fetchRandomRecipes/${userId}`);
       const data = response.data;
       if (response.status === 200) {
-        return data.randomRecipes;
+        return data;
       } else {
         throw new Error(data.message || "Erreur lors de la récupération");
       }
@@ -32,56 +39,45 @@ export default function MainPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const randomRecipesData = await fetchRandomRecipes();
-        setRandomRecipes(randomRecipesData);
+        const data = await fetchRandomRecipes();
+        setRandomRecipes(data.randomRecipes);
+        dispatch({ type: "ADD_ALL_FAVORITE", payload: data.favorites });
         setDataLoaded(true);
-        handleRecetteSuggestionsDetail(randomRecipesData);
+        handleRecetteSuggestionsDetail(data.randomRecipes);
       } catch (error) {
-        console.error('Error fetching recipes', error);
+        console.error("Error fetching recipes", error);
       }
     };
 
     fetchData();
   }, []);
 
-
   const parseRandomRecipes = (randomRecipesFullData) => {
     try {
       return randomRecipesFullData.map((item, index) => (
-        <div className="card recette-preview recette ml-4 mr-4" key={index}>
-          <div className="card-image">
-            <figure className="image is-6by3">
-              <img src={item[0].photo} alt="Placeholder image" style={{ height: "10rem" }} />
-            </figure>
-          </div>
-          <div className="card-content">
-            <div className="content">
-              <p className="title is-6" style={{"height": "27px"}}> {item[0].titre}</p>
-              <div className="temps-preparation" style={{"display" : "flex", 'alignItems' : 'center'}}>
-                <img src="src/assets/lhorloge.png" style={{ width: "25px", 'marginRight' : "4px"  }} ></img>
-                {item[0].tempspreparation} mins
-              </div>
-            </div>
-          </div>
-        </div>
+        <RecettePreview className="recette" key={index} recette={item[0]} />
       ));
     } catch (error) {
-      console.error("Erreur lors de l'analyse des suggestions :", error.message);
+      console.error(
+        "Erreur lors de l'analyse des suggestions :",
+        error.message
+      );
       return null;
     }
   };
 
   const handleRecetteSuggestionsDetail = (randomRecipesData) => {
     const recettesTitles = JSON.parse(randomRecipesData).recettes;
-    axios.post('http://localhost:5000/fetchRecettesByTitle', { recettesTitles })
-      .then(response => {
+    axios
+      .post("http://localhost:5000/fetchRecettesByTitle", { recettesTitles })
+      .then((response) => {
         const jsonObject = response.data.recettesData;
         setRandomRecipesFullData(jsonObject);
-      })
-  }
+      });
+  };
 
   return (
-    <div>
+    <div className="heroBackground">
       <div className="heroTitle">
         Bienvenue sur CuisineConnect
       </div>
@@ -92,11 +88,14 @@ export default function MainPage() {
       <div className="recettes-preview-wrapper">
         {recettes ? (
           recettes.length > 0 ? (
-            recettes.map((recette) => (
+            recettes.map((recette, index) => (
               <RecettePreview
                 className="recette"
-                key={recette[0].id}
+                key={index}
                 recette={recette[0]}
+                // addToFavorites={addToFavorites}
+                // removeFromFavorites={removeFromFavorites}
+                // isItemInFavorites={isItemInFavorites}
               />
             ))
           ) : null

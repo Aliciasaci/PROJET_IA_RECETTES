@@ -48,7 +48,7 @@ html {}
 
 .heroTitle {
   font-family: "Agbalumo";
-  margin-top: 5rem;
+  /* margin-top: 5rem; */
   display: flex;
   justify-content: center;
   font-size: 3rem;
@@ -163,11 +163,7 @@ html {}
 }
 
 .ReactModal__Content input {
-  position: absolute;
-  bottom: 2%;
-  left: 0%;
-  margin: 1rem;
-  width: 21rem;
+  margin-right: 1rem;
 }
 
 .ReactModal__Content span {

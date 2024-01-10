@@ -2,14 +2,55 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import RecettesSuggestions from './RecettesSuggestions';
+import IconButton from '@mui/material/IconButton';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import useAuth from '../hooks/useAuth';
+import useFavorites from '../hooks/useFavorites';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import * as Shareon from "shareon";
+import "shareon/css";
+import domtoimage from 'dom-to-image';
+
 
 export default function Recette() {
+
+  Shareon.init();
+
   const { id } = useParams();
   const [recette, setRecette] = useState('');
   const [similarRecipes, setSimilarRecipes] = useState('');
   const [ingredients, setIngredients] = useState('');
   const [listeCourses, setListeCourses] = useState('');
   const [accompagnements, setAccompagnements] = useState('');
+  const [imageGroceries, setImageGroceries] = useState('');
+  const { auth } = useAuth();
+  const { favorites, dispatch } = useFavorites();
+
+  const isItemInFavorites = (recette) => {
+    return favorites.some((item) => item.recette_id === recette);
+  }
+
+  const addToFavorites = async (recette) => {
+    try {
+      const userId = auth.userId;
+      const response = await axios.post(`http://localhost:5000/recettes/${recette}/favorites`, { userId });
+      if (response.data && response.data.result) {
+        dispatch({ type: "ADD_FAVORITE", payload: response.data.result });
+      }
+    } catch (error) {
+      console.error("Error adding to favorites", error);
+    }
+  }
+
+  const removeFromFavorites = (recette) => {
+    try {
+      const userId = auth.userId;
+      axios.delete(`http://localhost:5000/delete/recettes/${recette}/favorites`, { data: { userId } });
+      dispatch({ type: "REMOVE_FAVORITE", payload: recette });
+    } catch (error) {
+      console.error("Error removing from favorites", error);
+    }
+  }
 
   const parseInstructionsToList = (string) => {
     const items = string.split(/\s(?=\d\.)/);
@@ -27,6 +68,7 @@ export default function Recette() {
     let string = JSON.parse(ingredients).ingredients;
     const listItems = string.map((item, index) => <li key={index}>◯ {item}</li>);
     return <ul>{listItems}</ul>;
+
   };
 
   const parseAccompagnementToList = (accompagnements) => {
@@ -45,14 +87,15 @@ export default function Recette() {
 
   async function fetchRecipeDetails(recipeId) {
     try {
-      const response = await axios.get(`http://localhost:5000/fetchRecetteById/${recipeId}`);
+      const userId = auth.userId;
+      const response = await axios.get(`http://localhost:5000/fetchRecetteById/${recipeId}/${userId}`);
       const data = response.data;
       if (response.status === 200) {
 
         const similarRecipesTemp = await axios.get(`http://localhost:5000/fetchSimilarRecipes?titre=${data.recetteData.titre}`);
         setSimilarRecipes(similarRecipesTemp.data.similarRecipes);
 
-        return data.recetteData;
+        return data;
       } else {
         throw new Error(data.message || "Erreur lors de la récupération des détails de la recette");
       }
@@ -63,7 +106,7 @@ export default function Recette() {
   }
 
   async function handleSubmitGroceries() {
-    axios.post('http://localhost:5000/groceries', { ingredients })
+    axios.post('http://localhost:5000/groceries', { "ingredients":ingredients })
       .then(response => {
         setListeCourses(response.data.groceries);
       })
@@ -82,13 +125,18 @@ export default function Recette() {
       });
   }
 
+  function getListeString(){
+    return "Liste des courses:\n" + JSON.parse(listeCourses).ingredients.toString().replaceAll(',',"\n");
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (id) {
           const recipeData = await fetchRecipeDetails(id);
-          setRecette(recipeData);
-          setIngredients(recipeData.ingredients)
+          setRecette(recipeData.recetteData);
+          setIngredients(recipeData.recetteData.ingredients);
+          dispatch({ type: "ADD_ALL_FAVORITE", payload: recipeData.favorites });
         }
       } catch (error) {
         console.error('Error fetching recipe details', error);
@@ -103,6 +151,7 @@ export default function Recette() {
     <div>
       <div>
         {recette ? (
+
           <div className="card recette-detail">
             <div className="card-image">
               <figure className="image is-5by3">
@@ -110,9 +159,19 @@ export default function Recette() {
               </figure>
             </div>
             <div className="card-content pl-6 pr-6">
-              <div className="media-content" style={{"display" : "flex" , "justifyContent": "space-between"}}>
-                <h1 className="title recette-title">{recette.titre}</h1>
-                <span>Temps de preparation : {recette.tempspreparation} min(s)</span>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <div className="media-content">
+                  <h1 className="title recette-title">{recette.titre}</h1>
+                </div>
+                {isItemInFavorites(recette.id) ? (
+                  <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="error" variant="text">
+                    <FavoriteIcon />
+                  </IconButton>
+                ) : (
+                  <IconButton aria-label="add-to-favorites" onClick={() => addToFavorites(recette.id)} color="error" variant="text">
+                    <FavoriteBorderIcon />
+                  </IconButton>
+                )}
               </div>
             </div>
 
@@ -145,7 +204,7 @@ export default function Recette() {
         )}
       </div>
       {listeCourses && (
-        <div className="card recette-detail liste-courses">
+        <div className="card recette-detail liste-courses" id="liste-courses-div">
           <img id="orange-image" src='../src/assets/orange.png'></img>
           <img id="eggplant-image" src='../src/assets/eggplant.png'></img>
           <h2 className="title is-1 liste-courses-title">Liste de courses</h2>
@@ -154,11 +213,12 @@ export default function Recette() {
           </div>
 
           <div className="shareon">
-            <a className="facebook"></a>
-            <a className="messenger" data-fb-app-id="APP ID"></a>
-            <a className="twitter"></a>
-            <a className="whatsapp" data-url="url"></a>
-            <a className="email"></a>
+            <a className="copy-url" data-url={getListeString()}></a>
+            <a className="whatsapp" data-url={getListeString()}></a>
+            <a className="reddit" data-url={getListeString()}></a>
+            <a class="pinterest" data-url={getListeString()}></a>
+            <a class="viber" data-url={getListeString()}></a>
+
           </div>
         </div>
       )}

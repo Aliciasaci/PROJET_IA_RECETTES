@@ -9,10 +9,15 @@ const port = 5000;
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const cors = require("cors");
 const bodyParser = require("body-parser");
-app.use(cors());
+const bcrypt = require("bcrypt");
+const corsOptions = require("./config/corsOptions");
+const credentials = require("./middleware/credentials");
+const jwt = require("jsonwebtoken");
+
+app.use(credentials);
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.json());
-
 
 async function fetchRecettes() {
   try {
@@ -89,11 +94,12 @@ app.post("/fetchRecettesByTitle", async (req, res) => {
   }
 });
 
-
 async function fetchRecetteById(recetteId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT * FROM recettes WHERE id = $1", [recetteId]);
+    const result = await client.query("SELECT * FROM recettes WHERE id = $1", [
+      recetteId,
+    ]);
     const data = result.rows[0];
     client.release();
     return data;
@@ -103,12 +109,15 @@ async function fetchRecetteById(recetteId) {
   }
 }
 
-app.get("/fetchRecetteById/:id", async (req, res) => {
+app.get("/fetchRecetteById/:id/:userId", async (req, res) => {
   const recetteId = req.params.id;
+  const userId = req.params.userId;
   try {
     const recetteData = await fetchRecetteById(recetteId);
+    console.log("userId", userId);
+    const favorites = await fetchFavorites(userId);
     if (recetteData) {
-      res.json({ recetteData });
+      res.json({ recetteData, favorites });
     } else {
       res.status(404).json({ message: "Recette non trouvée" });
     }
@@ -118,14 +127,13 @@ app.get("/fetchRecetteById/:id", async (req, res) => {
   }
 });
 
-
 async function fetchSimilarRecipes(recetteTitle) {
   const recettes = await fetchRecettes();
   try {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante: ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte.` },
+        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante: ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte. renvoie exactement 5 recettes. ne renvoie jamais la recette sur laquelle tu te base. ` },
       ],
       format: "json",
     });
@@ -150,15 +158,19 @@ app.get("/fetchSimilarRecipes", async (req, res) => {
   }
 });
 
-
-//* generate random recipes 
+//* generate random recipes
 async function fetchRandomRecipes() {
   const recettes = await fetchRecettes();
   try {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. proposes 5 recette aléatoirs. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'` },
+        {
+          role: "system",
+          content: `En te basant sur ces recettes ${JSON.stringify(
+            recettes
+          )}. proposes 5 recette aléatoirs. renvoi un objet json avec uniquement les titres des recettes (je ne veux pas de texte en plus) dont la clè du json est le terme 'recettes'`,
+        },
       ],
     });
 
@@ -170,17 +182,17 @@ async function fetchRandomRecipes() {
   }
 }
 
-app.get("/fetchRandomRecipes", async (req, res) => {
+app.get("/fetchRandomRecipes/:userId", async (req, res) => {
   try {
     const randomRecipes = await fetchRandomRecipes();
-    res.json({ randomRecipes });
+    const { userId } = req.params;
+    const favorites = await fetchFavorites(userId);
+    res.json({ randomRecipes, favorites });
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");
   }
 });
-
-
 
 //* Générer liste de courses
 async function generateGroceriesList(ingredients) {
@@ -188,7 +200,12 @@ async function generateGroceriesList(ingredients) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `Propose une liste d'ingrédient à acheter en te basant sur ces besoin :   ${JSON.stringify(ingredients)}. renvoi un objet json dont la clè du json est le terme 'ingredients'.` },
+        {
+          role: "system",
+          content: `Propose une liste d'ingrédient à acheter en te basant sur ces besoin :   ${JSON.stringify(
+            ingredients
+          )}. renvoi un objet json dont la clè du json est le terme 'ingredients'.`,
+        },
       ],
     });
 
@@ -203,7 +220,7 @@ async function generateGroceriesList(ingredients) {
 app.post("/groceries", async (req, res) => {
   try {
     const ingredients = req.body.ingredients;
-
+    console.log(ingredients);
     const groceries = await generateGroceriesList(ingredients);
 
     res.json({ groceries });
@@ -213,55 +230,105 @@ app.post("/groceries", async (req, res) => {
   }
 });
 
-async function signUp(user) {
+async function checkIfEmailAlreadyExists(email) {
   try {
     const client = await pool.connect();
-    const result = await client.query("INSERT INTO users (nom, prenom, email, password) VALUES ($1, $2, $3, $4)", [user.nom, user.prenom, user.email, user.password]);
+    const result = await client.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
     const data = result.rows[0];
     client.release();
     return data;
   } catch (error) {
-    console.error("Error executing query", error);
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+async function signUp(user) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(
+      "INSERT INTO users (nom, prenom, email, password) VALUES ($1, $2, $3, $4)",
+      [user.nom, user.prenom, user.email, user.password]
+    );
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
     throw error;
   }
 }
 
 app.post("/signUp", async (req, res) => {
+  const { nom, prenom, email, password } = req.body;
+  if (!nom || !prenom || !email || !password)
+    return res.status(400).json({ message: "Champ(s) manquant(s)" });
+  const duplicateEmail = await checkIfEmailAlreadyExists(email);
+  if (duplicateEmail)
+    return res.status(409).json({ message: "Email déjà utilisé" });
   try {
-    const user = req.body;
-    const userData = await signUp(user);
-    res.json({ userData });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = {
+      nom,
+      prenom,
+      email,
+      password: hashedPassword,
+    };
+    await signUp(newUser);
+    res.status(201).json({ message: "Utilisateur créé" });
   } catch (error) {
-    console.error("Error processing request", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error", error);
+    throw error;
   }
 });
 
-async function signIn(user) {
+async function signIn(email, password) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT * FROM users WHERE email = $1 AND password = $2", [user.email, user.password]);
+    const result = await client.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
     const data = result.rows[0];
+
+    if (!data) {
+      client.release();
+      throw new Error("Email non trouvé");
+    }
+    const passwordMatch = await bcrypt.compare(password, data.password);
+
+    if (!passwordMatch) {
+      client.release();
+      throw new Error("Mot de passe incorrect");
+    }
     client.release();
     return data;
   } catch (error) {
-    console.error("Error executing query", error);
+    console.error("Error", error);
     throw error;
   }
 }
 
 app.post("/signIn", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ message: "Email ou mot de passe incorrect" });
   try {
-    const user = req.body;
-    const userData = await signIn(user);
-    res.json({ userData });
+    const user = await signIn(email, password);
+
+    const accessToken = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "1h" }
+    );
+    res.cookie("accessToken", accessToken, { httpOnly: true, maxAge: 3600000 });
+    res.json({ accessToken, id: user.id, email: user.email, nom: user.nom, prenom: user.prenom });
   } catch (error) {
-    console.error("Error processing request", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error", error);
+    throw error;
   }
 });
-
-
 
 //* Générer accompagnement
 async function generateAccompagnement(recette) {
@@ -269,7 +336,12 @@ async function generateAccompagnement(recette) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `Proposes des accompagnements à la recette suivante : ${JSON.stringify(recette)}. Les accompagnements doivent être des vins ou des frommages et un dessert sucré ou salé. renvoi un objet json dont la clè du json est le terme 'accompagnements'.` },
+        {
+          role: "system",
+          content: `Proposes des accompagnements à la recette suivante : ${JSON.stringify(
+            recette
+          )}. Les accompagnements doivent être des vins ou des frommages et un dessert sucré ou salé. renvoi un objet json dont la clè du json est le terme 'accompagnements'.`,
+        },
       ],
     });
 
@@ -282,7 +354,6 @@ async function generateAccompagnement(recette) {
 }
 
 app.post("/recettes/:id/accompagnements/", async (req, res) => {
-
   try {
     const recetteId = req.params.id;
     const recette = await fetchRecetteById(recetteId);
@@ -295,8 +366,104 @@ app.post("/recettes/:id/accompagnements/", async (req, res) => {
   }
 });
 
+async function addToFavorites(userId, recetteId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("INSERT INTO favorite_recettes (user_id, recette_id) VALUES ($1, $2) RETURNING *", [userId, recetteId]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
 
+app.post("/recettes/:id/favorites", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    const result = await addToFavorites(userId, id);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
 
+async function fetchFavorites(userId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT * FROM favorite_recettes WHERE user_id = $1", [userId]);
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+async function deleteFromFavorites(userId, recetteId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("DELETE FROM favorite_recettes WHERE user_id = $1 AND recette_id = $2", [userId, recetteId]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.delete("/delete/recettes/:id/favorites", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    const result = await deleteFromFavorites(userId, id);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function chatBot(messages) {
+  try {
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Tu répondras avec l'expertise d'un chef étoilé au guide michelin ayant une 15aines d’années d’expérience dans le métier avec plusieurs concours culinaires gagnés à l’internationnal",
+        },
+        {
+          role: "user",
+          content: JSON.stringify(messages),
+        },
+      ],
+    });
+
+    const response = completions.choices[0].message.content;
+    return response;
+  } catch (error) {
+    console.error("Error executing query", error);
+    throw error;
+  }
+}
+
+app.post("/chatbot", async (req, res) => {
+  try {
+    const messages = req.body.question;
+    const response = await chatBot(messages);
+    res.json({ response });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
