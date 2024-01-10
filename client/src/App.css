@@ -269,22 +269,16 @@ background-color: rgb(255, 255, 213);
   font-weight: bold;
 }
 
-.instructions>h2{
-  font-family: 'Playfair Display', serif;
-}
-
-.instructions ul{
+.instructions ul, .ingredients ul{
   list-style: none;
 }
 
-.ingredients>h2{
+.ingredients>h2, .accompagnements>h2, .instructions>h2{
   font-family: 'Playfair Display', serif;
 }
 
-.ingredients ul{
-  list-style: none;
-}
 
 .recette-title{
   font-family: 'Playfair Display', serif;
 }
+

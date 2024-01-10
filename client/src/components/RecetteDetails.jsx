@@ -7,14 +7,24 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import useAuth from '../hooks/useAuth';
 import useFavorites from '../hooks/useFavorites';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import * as Shareon from "shareon";
+import "shareon/css";
+import domtoimage from 'dom-to-image';
+
+import RecetteRating from './RecetteRating';
+import Typography from '@mui/material/Typography';
 
 export default function Recette() {
+
+  Shareon.init();
+
   const { id } = useParams();
   const [recette, setRecette] = useState('');
   const [similarRecipes, setSimilarRecipes] = useState('');
   const [ingredients, setIngredients] = useState('');
   const [listeCourses, setListeCourses] = useState('');
   const [accompagnements, setAccompagnements] = useState('');
+  const [imageGroceries, setImageGroceries] = useState('');
   const { auth } = useAuth();
   const { favorites, dispatch } = useFavorites();
 
@@ -46,7 +56,7 @@ export default function Recette() {
 
   const parseInstructionsToList = (string) => {
     const items = string.split(/\s(?=\d\.)/);
-    const listItems = items.map((item, index) => <li key={index}><span className='intructions-numbers'>{index + 1}</span><br />{item}</li>);
+    const listItems = items.map((item, index) => <li key={index}><span className='intructions-numbers'>{index + 1}</span><br />{item.substr(2, item.length)}</li>);
     return <ul>{listItems}</ul>;
   }
 
@@ -60,6 +70,7 @@ export default function Recette() {
     let string = JSON.parse(ingredients).ingredients;
     const listItems = string.map((item, index) => <li key={index}>◯ {item}</li>);
     return <ul>{listItems}</ul>;
+
   };
 
   const parseAccompagnementToList = (accompagnements) => {
@@ -97,7 +108,7 @@ export default function Recette() {
   }
 
   async function handleSubmitGroceries() {
-    axios.post('http://localhost:5000/groceries', { ingredients })
+    axios.post('http://localhost:5000/groceries', { "ingredients":ingredients })
       .then(response => {
         setListeCourses(response.data.groceries);
       })
@@ -116,13 +127,17 @@ export default function Recette() {
       });
   }
 
+  function getListeString(){
+    return "Liste des courses:\n" + JSON.parse(listeCourses).ingredients.toString().replaceAll(',',"\n");
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (id) {
           const recipeData = await fetchRecipeDetails(id);
           setRecette(recipeData.recetteData);
-          setIngredients(recipeData.ingredients);
+          setIngredients(recipeData.recetteData.ingredients);
           dispatch({ type: "ADD_ALL_FAVORITE", payload: recipeData.favorites });
         }
       } catch (error) {
@@ -138,6 +153,7 @@ export default function Recette() {
     <div>
       <div>
         {recette ? (
+
           <div className="card recette-detail">
             <div className="card-image">
               <figure className="image is-5by3">
@@ -149,14 +165,14 @@ export default function Recette() {
                 <div className="media-content">
                   <h1 className="title recette-title">{recette.titre}</h1>
                 </div>
-                { isItemInFavorites(recette.id) ? (
-                    <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="error" variant="text">
-                        <FavoriteIcon />
-                    </IconButton>
-                  ) : (
-                    <IconButton aria-label="add-to-favorites"onClick={() => addToFavorites(recette.id)} color="error" variant="text">
-                        <FavoriteBorderIcon />
-                    </IconButton>
+                {isItemInFavorites(recette.id) ? (
+                  <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="error" variant="text">
+                    <FavoriteIcon />
+                  </IconButton>
+                ) : (
+                  <IconButton aria-label="add-to-favorites" onClick={() => addToFavorites(recette.id)} color="error" variant="text">
+                    <FavoriteBorderIcon />
+                  </IconButton>
                 )}
               </div>
             </div>
@@ -171,16 +187,22 @@ export default function Recette() {
               {parseInstructionsToList(recette.instructions)}
             </div>
 
-            <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
-            <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
 
             {accompagnements && (
-              <div className="content pl-6 ">
-                <h2>Accompagnement :</h2>
+              <div className="content pl-6 mt-4 accompagnements">
+                <h2><u>Accompagnement :</u></h2>
 
                 {parseAccompagnementToList(accompagnements)}
               </div>
             )}
+
+            <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
+            <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
+
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+              <Typography component="legend">Donnez votre avis : </Typography>
+              <RecetteRating recette={recette.id} />
+            </div>
           </div>
 
         ) : (
@@ -188,7 +210,7 @@ export default function Recette() {
         )}
       </div>
       {listeCourses && (
-        <div className="card recette-detail liste-courses">
+        <div className="card recette-detail liste-courses" id="liste-courses-div">
           <img id="orange-image" src='../src/assets/orange.png'></img>
           <img id="eggplant-image" src='../src/assets/eggplant.png'></img>
           <h2 className="title is-1 liste-courses-title">Liste de courses</h2>
@@ -197,11 +219,12 @@ export default function Recette() {
           </div>
 
           <div className="shareon">
-            <a className="facebook"></a>
-            <a className="messenger" data-fb-app-id="APP ID"></a>
-            <a className="twitter"></a>
-            <a className="whatsapp" data-url="url"></a>
-            <a className="email"></a>
+            <a className="copy-url" data-url={getListeString()}></a>
+            <a className="whatsapp" data-url={getListeString()}></a>
+            <a className="reddit" data-url={getListeString()}></a>
+            <a class="pinterest" data-url={getListeString()}></a>
+            <a class="viber" data-url={getListeString()}></a>
+
           </div>
         </div>
       )}
