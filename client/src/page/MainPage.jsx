@@ -2,13 +2,19 @@ import React, { useState, useEffect } from "react";
 import SearchBar from "../components/SearchBar";
 import RecettePreview from "../components/RecettePreview";
 import { Typography } from "@mui/material";
-import axios from "axios";
+import axios from 'axios';
+import IconButton from '@mui/material/IconButton';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import useFavorites from "../hooks/useFavorites";
+import useAuth from "../hooks/useAuth";
 
 export default function MainPage() {
   const [recettes, setRecettes] = useState(null);
   const [randomRecipes, setRandomRecipes] = useState(null);
   const [randomRecipesFullData, setRandomRecipesFullData] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const { favorites, dispatch } = useFavorites();
+  const { auth } = useAuth();
 
   const handleSearch = (search) => {
     setRecettes(search);
@@ -16,12 +22,11 @@ export default function MainPage() {
 
   async function fetchRandomRecipes() {
     try {
-      const response = await axios.get(
-        `http://localhost:5000/fetchRandomRecipes`
-      );
+      const userId = auth.userId;
+      const response = await axios.get(`http://localhost:5000/fetchRandomRecipes/${userId}`);
       const data = response.data;
       if (response.status === 200) {
-        return data.randomRecipes;
+        return data;
       } else {
         throw new Error(data.message || "Erreur lors de la récupération");
       }
@@ -34,10 +39,11 @@ export default function MainPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const randomRecipesData = await fetchRandomRecipes();
-        setRandomRecipes(randomRecipesData);
+        const data = await fetchRandomRecipes();
+        setRandomRecipes(data.randomRecipes);
+        dispatch({ type: "ADD_ALL_FAVORITE", payload: data.favorites });
         setDataLoaded(true);
-        handleRecetteSuggestionsDetail(randomRecipesData);
+        handleRecetteSuggestionsDetail(data.randomRecipes);
       } catch (error) {
         console.error("Error fetching recipes", error);
       }
@@ -71,24 +77,29 @@ export default function MainPage() {
   };
 
   return (
-    <div>
-      <div className="heroTitle">Bienvenue sur CuisineConnect</div>
+    <div className="heroBackground">
+      <div className="heroTitle">
+        Bienvenue sur CuisineConnect
+      </div>
       <div className="heroSubtitle">
         Quelle recette simple et délicieuse allez-vous essayer aujourd'hui ?
       </div>
       <SearchBar onSubmit={handleSearch} />
       <div className="recettes-preview-wrapper">
-        {recettes
-          ? recettes.length > 0
-            ? recettes.map((recette, index) => (
-                <RecettePreview
-                  className="recette"
-                  key={index}
-                  recette={recette[0]}
-                />
-              ))
-            : null
-          : null}
+        {recettes ? (
+          recettes.length > 0 ? (
+            recettes.map((recette, index) => (
+              <RecettePreview
+                className="recette"
+                key={index}
+                recette={recette[0]}
+                // addToFavorites={addToFavorites}
+                // removeFromFavorites={removeFromFavorites}
+                // isItemInFavorites={isItemInFavorites}
+              />
+            ))
+          ) : null
+        ) : null}
       </div>
       <div className="heroSubtitle">
         Envie de ? <br />
