@@ -52,6 +52,7 @@ function ChatbotModal({ isOpen, onRequestClose }) {
         <span onClick={onRequestClose} style={{ cursor: "pointer" }}>
           ❌
         </span>
+        <div></div>
         {answer && <Typography>{answer}</Typography>}
         <div
           style={{
@@ -75,6 +76,7 @@ function ChatbotModal({ isOpen, onRequestClose }) {
               padding: "0 1rem",
               marginBottom: "0.3rem",
             }}
+            onClick={sendQuestion}
           >
             Demander
           </Button>
