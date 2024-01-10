@@ -1,10 +1,8 @@
-import * as React from 'react';
+import { useRef, useState, useEffect, forwardRef } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
@@ -12,28 +10,87 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
+import useAuth from '../hooks/useAuth';
+
+const Alert = forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 export default function SignInForm() {
+  const { setAuth } = useAuth();
   const navigateTo = useNavigate();
-  const handleSubmit = (event) => {
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
+  const userRef = useRef();
+  const [open, setOpen] = useState(false);
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errMsg, setErrMsg] = useState('');
+  
+
+  useEffect(() => {
+    userRef.current.focus();
+  }, []);
+
+  useEffect(() => {
+    setErrMsg('');
+  }, [email, password]);
+
+  const handleClick = () => {
+    setOpen(true);
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway' || reason === 'timeout') {
+      return;
+    }
+
+    setOpen(false);
+  }
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    axios.post('http://localhost:5000/signIn', {
-      email: data.get('email'),
-      password: data.get('password'),
-    })
-    .then(response => {
-      console.log(response);
-      navigateTo('/');
-    })
-    .catch(error => {
-      console.error(error);
-    });
+    
+    try {
+      const response = await axios.post('http://localhost:5000/signIn',
+        JSON.stringify({email, password}),
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true,
+        });
+      
+      const accessToken = response?.data?.accessToken;
+      setAuth({ email, password, accessToken });
+      setEmail('');
+      setPassword('');
+      navigateTo(from, { replace: true });
+    } catch (error) {
+        if (!error?.response) {
+          setErrMsg('Erreur réseau');
+        } else if (error.response?.status === 400) {
+          setErrMsg('Email ou mot de passe incorrect');
+        } else if (error.response?.status === 401) {
+          setErrMsg('Accès non autorisé');
+        } else {
+          setErrMsg('Connexion impossible');
+        }
+        handleClick();
+    }
   };
     
   return (
     <Grid container component="main" sx={{ height: '100vh', overflow: "hidden" }}>
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+          {errMsg}
+        </Alert>
+      </Snackbar>
       <CssBaseline />
       <Grid
         item
@@ -75,6 +132,9 @@ export default function SignInForm() {
               name="email"
               autoComplete="email"
               autoFocus
+              ref={userRef}
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
             />
             <TextField
               margin="normal"
@@ -84,7 +144,8 @@ export default function SignInForm() {
               label="Mot de passe"
               type="password"
               id="password"
-              autoComplete="current-password"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
             />
             <Button
               type="submit"
