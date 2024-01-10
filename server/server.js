@@ -125,7 +125,7 @@ async function fetchSimilarRecipes(recetteTitle) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte` },
+        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante: ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte.` },
       ],
       format: "json",
     });
