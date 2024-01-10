@@ -66,7 +66,10 @@ export default function SignInForm() {
         });
       
       const accessToken = response?.data?.accessToken;
-      setAuth({ email, password, accessToken });
+      const userId = response?.data?.id;
+      const nom = response?.data?.nom;
+      const prenom = response?.data?.prenom;
+      setAuth({ userId, nom, prenom, email, password, accessToken });
       setEmail('');
       setPassword('');
       navigateTo(from, { replace: true });

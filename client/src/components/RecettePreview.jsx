@@ -9,9 +9,42 @@ import {
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { CardActions } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import useFavorites from "../hooks/useFavorites";
+import useAuth from "../hooks/useAuth";
+import axios from "axios";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 
 export default function RecettePreview({ recette }) {
   const navigate = useNavigate();
+  const { favorites, dispatch } = useFavorites();
+  const { auth } = useAuth();
+
+  const isItemInFavorites = (recette) => {
+    console.log("test favorites", recette, favorites, favorites.some((item) => item.recette_id === recette));
+    return favorites.some((item) => item.recette_id === recette);
+  }
+
+  const addToFavorites = async (recette) => {
+    try {
+      const userId = auth.userId;
+      const response = await axios.post(`http://localhost:5000/recettes/${recette}/favorites`, { userId });
+      if (response.data && response.data.result) {
+        dispatch({ type: "ADD_FAVORITE", payload: response.data.result });
+      }
+    } catch (error) {
+      console.error("Error adding to favorites", error);
+    }
+  }
+
+  const removeFromFavorites = (recette) => {
+    try {
+      const userId = auth.userId;
+      axios.delete(`http://localhost:5000/delete/recettes/${recette}/favorites`, { data: { userId } });
+      dispatch({ type: "REMOVE_FAVORITE", payload: recette });
+    } catch (error) {
+      console.error("Error removing from favorites", error);
+    }
+  }
 
   return (
     <Card
@@ -52,18 +85,20 @@ export default function RecettePreview({ recette }) {
         </Typography>
       </CardContent>
       <CardActions sx={{ display: "flex", justifyContent: "space-around" }}>
-        <IconButton
-          aria-label="add to favorites"
-          sx={{ borderRadius: "0" }}
-          onClick={(event) => {
-            event.stopPropagation();
-          }}
-        >
-          <FavoriteBorderIcon />
-          <Typography variant="subtitle1" sx={{ color: "rgba(0, 0, 0, 0.54)" }}>
-            34
-          </Typography>
-        </IconButton>
+        { isItemInFavorites(recette.id) ? (
+            <IconButton aria-label="remove-from-favorites" color="error" onClick={(event) => {
+                event.stopPropagation();
+                removeFromFavorites(recette.id)}} variant="text">
+                <FavoriteIcon />
+            </IconButton>
+        ) : (
+            <IconButton aria-label="add-to-favorites" onClick={(event) => {
+                event.stopPropagation();
+                addToFavorites(recette.id)}} color="error" variant="text">
+                <FavoriteBorderIcon />
+            </IconButton>
+        
+        )}
       </CardActions>
     </Card>
   );
