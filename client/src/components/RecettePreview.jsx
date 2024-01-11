@@ -15,12 +15,12 @@ import axios from "axios";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import AccessTime from "@mui/icons-material/AccessTime";
 
-export default function RecettePreview({ recette }) {
+export default function RecettePreview({ recette, onRemove }) {
   const navigate = useNavigate();
   const { favorites, dispatch } = useFavorites();
   const { auth } = useAuth();
 
-  const isItemInFavorites = (recette) => {
+  const isItemInFavorites = (recette) => {  
     return favorites.some((item) => item.recette_id === recette);
   };
 
@@ -47,6 +47,7 @@ export default function RecettePreview({ recette }) {
         { data: { userId } }
       );
       dispatch({ type: "REMOVE_FAVORITE", payload: recette });
+      onRemove(recette);
     } catch (error) {
       console.error("Error removing from favorites", error);
     }
