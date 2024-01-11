@@ -20,6 +20,46 @@ export default function MainPage() {
     setRecettes(search);
   };
 
+  async function fetchRecettesParSaison() {
+    try {
+      const response = await axios.get(`http://localhost:5000/fetchRecettesPerSeason/`);
+      const jsonObject = response.data.assistantResponse;
+      handlePostSearch(jsonObject);
+
+
+      //changer couleur btn
+      document.querySelector('.btn-saison').style.backgroundColor = "orange";
+      document.querySelector('.btn-saison').style.color = "white";
+
+    } catch (error) {
+      console.error("Error fetching seasonal recipes", error);
+      throw error;
+    }
+  }
+
+  async function fetchRecettesParCalories() {
+    try {
+      const response = await axios.get(`http://localhost:5000/fetchRecettesPerCalories/`);
+      const jsonObject = response.data.assistantResponse;
+      handlePostSearch(jsonObject);
+
+    } catch (error) {
+      console.error("Error fetching seasonal recipes", error);
+      throw error;
+    }
+  }
+
+  const handlePostSearch = React.useCallback((recettesTitles) => {
+    axios
+      .post("http://localhost:5000/fetchRecettesByTitle", { recettesTitles })
+      .then((response) => {
+        console.log(response.data.recettesData);
+        const jsonObject = response.data.recettesData;
+        setRecettes(jsonObject);
+      });
+  }, []);
+
+
   async function fetchRandomRecipes() {
     try {
       const userId = auth.userId;
@@ -85,6 +125,19 @@ export default function MainPage() {
         Quelle recette simple et délicieuse allez-vous essayer aujourd'hui ?
       </div>
       <SearchBar onSubmit={handleSearch} />
+      <div className="bonus">
+        <div className="heroSubtitle">
+          Je veux plutôt des recettes
+        </div>
+        <div className="bonus-buttons">
+          <button className="button mr-2 btn-saison" onClick={fetchRecettesParSaison}>de saison</button>
+          <div className="calories">
+            <button className="button" onClick={fetchRecettesParCalories}>Calories</button>
+            <input className="input" type="text" placeholder="Cal min"></input>
+            <input className="input" type="text" placeholder="Cal max"></input>
+          </div>
+        </div>
+      </div>
       <div className="recettes-preview-wrapper">
         {recettes ? (
           recettes.length > 0 ? (
@@ -93,9 +146,9 @@ export default function MainPage() {
                 className="recette"
                 key={index}
                 recette={recette[0]}
-                // addToFavorites={addToFavorites}
-                // removeFromFavorites={removeFromFavorites}
-                // isItemInFavorites={isItemInFavorites}
+              // addToFavorites={addToFavorites}
+              // removeFromFavorites={removeFromFavorites}
+              // isItemInFavorites={isItemInFavorites}
               />
             ))
           ) : null

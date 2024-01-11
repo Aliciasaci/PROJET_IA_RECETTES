@@ -13,6 +13,7 @@ const bcrypt = require("bcrypt");
 const corsOptions = require("./config/corsOptions");
 const credentials = require("./middleware/credentials");
 const jwt = require("jsonwebtoken");
+let modeCalories = false;
 
 app.use(credentials);
 app.use(cors(corsOptions));
@@ -41,7 +42,7 @@ app.post("/fetchTitles", async (req, res) => {
       role: "system",
       content: `En te basant sur ces données ${JSON.stringify(
         recettes
-      )} et la demande que l'utilisateur te fait. Renvoie SEULEMENT une array de string (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc]. Pas un objet JSON la demande peut être par temps de préparation. par catégorie de recette et par ingrédients.`,
+      )} et la demande que l'utilisateur te fait. Renvoie SEULEMENT une array de string (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc]. Pas un objet JSON la demande peut être par temps de préparation, par catégorie de recette et par ingrédients.`,
     });
 
     //demande utiliasteur
@@ -54,7 +55,6 @@ app.post("/fetchTitles", async (req, res) => {
     });
 
     const assistantResponse = completions.choices[0].message.content;
-    console.log(assistantResponse);
     res.json({ assistantResponse });
   } catch (error) {
     console.error("Error processing request", error);
@@ -62,10 +62,50 @@ app.post("/fetchTitles", async (req, res) => {
   }
 });
 
+// async function fetchRecettesByTitle(recettes) {
+//   try {
+//     let recettesArray = [];
+//     if (typeof recettes == "object") {
+//       recettesArray = Object.values(recettes);
+//     } else {
+//       recettesArray = JSON.parse(recettes);
+//     }
+
+//     const client = await pool.connect();
+//     const promises = recettesArray.map((recette) => {
+//       console.log(recette);
+//       return client.query('SELECT * FROM recettes WHERE titre LIKE $1', [`%${recette}$%`]);
+//     });
+
+//     const results = await Promise.all(promises);
+//     const data = results.map((result) => result.rows);
+
+//     console.log(data);
+//     // if (modeCalories == true) {
+//     //   modeCalories = false;
+//     //   for (let tableau of data) {
+//     //     for (let objet of tableau) {
+//     //       // for (let i = 0; i < recettesArray.length; i++) {
+//     //       //   objet.titre = recettesArray[i];
+//     //       //   if (recettesArray[i].includes(objet.titre)) {
+
+//     //       //     console.log(recettesArray[i]);
+//     //       //   }
+//     //       // }
+//     //     }
+//     //   }
+//     // }
+
+//     client.release();
+//     return data;
+//   } catch (error) {
+//     console.error("Error executing query", error);
+//   }
+// }
+
 async function fetchRecettesByTitle(recettes) {
   try {
     let recettesArray = [];
-    console.log("recettes", recettes);
     if (typeof recettes == "object") {
       recettesArray = Object.values(recettes);
     } else {
@@ -73,12 +113,15 @@ async function fetchRecettesByTitle(recettes) {
     }
     const client = await pool.connect();
     const promises = recettesArray.map((recette) => {
+      console.log(recette);
       return client.query("SELECT * FROM recettes WHERE titre = $1", [recette]);
     });
 
     const results = await Promise.all(promises);
     const data = results.map((result) => result.rows);
     client.release();
+
+    // console.log(data);
     return data;
   } catch (error) {
     console.error("Error executing query", error);
@@ -134,18 +177,7 @@ async function fetchSimilarRecipes(recetteTitle) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-<<<<<<< HEAD
         { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante: ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte. renvoie exactement 5 recettes. ne renvoie jamais la recette sur laquelle tu te base. ` },
-=======
-        {
-          role: "system",
-          content: `En te basant sur ces recettes ${JSON.stringify(
-            recettes
-          )}. recommandes toutes celles qui ressemblent à la recette suivante : ${JSON.stringify(
-            recetteTitle
-          )}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte, et supprime l'echappement des caractères.`,
-        },
->>>>>>> b23af1269bb5bae049ec9a8268cd6d087c387a05
       ],
       format: "json",
     });
@@ -162,7 +194,6 @@ app.get("/fetchSimilarRecipes", async (req, res) => {
   const titre = req.query.titre;
   try {
     const similarRecipes = await fetchSimilarRecipes(titre);
-    console.log(similarRecipes);
     res.json({ similarRecipes });
   } catch (error) {
     console.error("Error processing request", error);
@@ -232,7 +263,6 @@ async function generateGroceriesList(ingredients) {
 app.post("/groceries", async (req, res) => {
   try {
     const ingredients = req.body.ingredients;
-    console.log(ingredients);
     const groceries = await generateGroceriesList(ingredients);
 
     res.json({ groceries });
@@ -541,6 +571,72 @@ app.get("/recettes/:id/rating", async (req, res) => {
   }
 });
 
+
+
+/// BONUUSSS
+app.get("/fetchRecettesPerSeason", async (req, res) => {
+  try {
+
+    let mois = [
+      "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+      "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+    ];
+    let dateActuelle = new Date();
+    let moisActuel = mois[dateActuelle.getMonth()];
+
+    const recettes = await fetchRecettes();
+    const messages = [];
+    messages.push({
+      role: "system",
+      content: `En te basant sur ces données ${JSON.stringify(
+        recettes
+      )}, Proposes les recettes dont les ingrédients sont de la saison du mois suivant : ${moisActuel} . Renvoie SEULEMENT une array de string (je ne veux pas de texte en plus) avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc]. Pas un objet JSON.`,
+    });
+
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: messages,
+      format: "json",
+    });
+
+    const assistantResponse = completions.choices[0].message.content;
+    res.json({ assistantResponse });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+app.get("/fetchRecettesPerCalories", async (req, res) => {
+  try {
+
+    const recettes = await fetchRecettes();
+    const messages = [];
+    const [minCalories, maxCalories] = [200, 800];
+    modeCalories = true;
+    messages.push({
+      role: "system",
+      content: `En te basant sur ces données ${JSON.stringify(
+        recettes
+      )}, Proposes les recettes qui ont un apport calorique compris entre ${[minCalories, maxCalories]}. Renvoie SEULEMENT une array de string avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc] ainsi que l'apport calorique pour chaque recette. l'apport calorique est obligatoire . Pas un objet JSON. `,
+    });
+
+    const completions = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: messages,
+      format: "json",
+    });
+
+    const assistantResponse = completions.choices[0].message.content;
+    res.json({ assistantResponse });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
+
