@@ -93,9 +93,6 @@ export default function MainPage() {
                 className="recette"
                 key={index}
                 recette={recette[0]}
-                // addToFavorites={addToFavorites}
-                // removeFromFavorites={removeFromFavorites}
-                // isItemInFavorites={isItemInFavorites}
               />
             ))
           ) : null

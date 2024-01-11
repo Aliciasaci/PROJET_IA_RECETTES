@@ -134,9 +134,6 @@ async function fetchSimilarRecipes(recetteTitle) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-<<<<<<< HEAD
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante: ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte. renvoie exactement 5 recettes. ne renvoie jamais la recette sur laquelle tu te base. ` },
-=======
         {
           role: "system",
           content: `En te basant sur ces recettes ${JSON.stringify(
@@ -145,7 +142,6 @@ async function fetchSimilarRecipes(recetteTitle) {
             recetteTitle
           )}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte, et supprime l'echappement des caractères.`,
         },
->>>>>>> b23af1269bb5bae049ec9a8268cd6d087c387a05
       ],
       format: "json",
     });
@@ -534,6 +530,56 @@ app.get("/recettes/:id/rating", async (req, res) => {
   try {
     const { id } = req.params;
     const result = await getRating(id);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function addFeedback(userId, recetteId, newFeedback) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("INSERT INTO feedback (user_id, recette_id, commentaire) VALUES ($1, $2, $3) RETURNING *", [userId, recetteId, newFeedback]);
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.post("/recettes/:id/feedback", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, newFeedback } = req.body;
+    const result = await addFeedback(userId, id, newFeedback);
+    const feedbackList = await getFeedback(id);
+    res.json({ result, feedbackList });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+})
+
+async function getFeedback(recetteId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT u.nom, u.prenom, f.user_id, f.recette_id, f.commentaire, f.created_at FROM users u INNER JOIN feedback f on u.id = f.user_id AND f.recette_id = $1", [recetteId]);
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.get("/recettes/:id/feedback", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await getFeedback(id);
     res.json({ result });
   } catch (error) {
     console.error("Error", error);
