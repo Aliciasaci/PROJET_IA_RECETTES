@@ -48,7 +48,7 @@ html {}
 
 .heroTitle {
   font-family: "Agbalumo";
-  margin-top: 5rem;
+  /* margin-top: 5rem; */
   display: flex;
   justify-content: center;
   font-size: 3rem;
@@ -160,14 +160,11 @@ html {}
   left: 73% !important;
   box-shadow: rgba(14, 30, 37, 0) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
   border-radius: 21px !important;
+  display: flex;
 }
 
 .ReactModal__Content input {
-  position: absolute;
-  bottom: 2%;
-  left: 0%;
-  margin: 1rem;
-  width: 21rem;
+  margin-right: 1rem;
 }
 
 .ReactModal__Content span {
@@ -275,22 +272,16 @@ background-color: rgb(255, 255, 213);
   font-weight: bold;
 }
 
-.instructions>h2{
-  font-family: 'Playfair Display', serif;
-}
-
-.instructions ul{
+.instructions ul, .ingredients ul{
   list-style: none;
 }
 
-.ingredients>h2{
+.ingredients>h2, .accompagnements>h2, .instructions>h2{
   font-family: 'Playfair Display', serif;
 }
 
-.ingredients ul{
-  list-style: none;
-}
 
 .recette-title{
   font-family: 'Playfair Display', serif;
 }
+
