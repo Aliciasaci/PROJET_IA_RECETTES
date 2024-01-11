@@ -18,9 +18,7 @@ export default function Header() {
           <Link className="navbar-item" to={"/"}>
             Accueil
           </Link>
-          <Link className='navbar-item' to={"/allRecettes"}>
-            Toutes nos recettes
-          </Link>
+         
         </div>
 
         <div className="navbar-end">
