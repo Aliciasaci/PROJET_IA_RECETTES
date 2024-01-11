@@ -218,6 +218,7 @@ async function fetchRandomRecipes() {
     });
 
     result = completions.choices[0].message.content;
+    console.log("result", result)
     return result;
   } catch (error) {
     console.error("Error executing query", error);
@@ -687,6 +688,31 @@ app.get("/fetchRecettesPerCalories", async (req, res) => {
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+async function getFavoritesByUser(userId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query("SELECT r.id, r.titre, r.tempspreparation, r.photo FROM recettes r JOIN favorite_recettes f ON r.id = f.recette_id AND f.user_id = $1", [userId]);
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.get("/favoriteList/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await getFavoritesByUser(userId);
+    const favorites = await fetchFavorites(userId);
+    res.json({ result, favorites });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
   }
 });
 

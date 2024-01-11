@@ -50,7 +50,6 @@ export default function MainPage() {
     axios
       .post("http://localhost:5000/fetchRecettesByTitle", { recettesTitles })
       .then((response) => {
-        console.log(response.data.recettesData);
         const jsonObject = response.data.recettesData;
         setRecettes(jsonObject);
       });
