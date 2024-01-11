@@ -460,7 +460,7 @@ async function chatBot(messages) {
         {
           role: "system",
           content:
-            "Tu répondras avec l'expertise d'un chef étoilé au guide michelin ayant une 15aines d’années d’expérience dans le métier avec plusieurs concours culinaires gagnés à l’internationnal",
+            "Tu répondras, en 300 caractères maximum et avec l'expertise d'un chef étoilé au guide michelin ayant une 15aines d’années d’expérience dans le métier avec plusieurs concours culinaires gagnés à l’internationnal. Ton nom est Jean Bonboeur.",
         },
         {
           role: "user",
@@ -479,7 +479,7 @@ async function chatBot(messages) {
 
 app.post("/chatbot", async (req, res) => {
   try {
-    const messages = req.body.question;
+    const messages = req.body.input;
     const response = await chatBot(messages);
     res.json({ response });
   } catch (error) {
@@ -491,7 +491,10 @@ app.post("/chatbot", async (req, res) => {
 async function addRating(userId, recetteId, rating) {
   try {
     const client = await pool.connect();
-    const result = await client.query("INSERT INTO rating (user_id, recette_id, note) VALUES ($1, $2, $3) RETURNING *", [userId, recetteId, rating]);
+    const result = await client.query(
+      "INSERT INTO rating (user_id, recette_id, note) VALUES ($1, $2, $3) RETURNING *",
+      [userId, recetteId, rating]
+    );
     const data = result.rows[0];
     client.release();
     return data;
@@ -516,7 +519,10 @@ app.post("/recettes/:id/rating", async (req, res) => {
 async function getRating(recetteId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT recette_id, AVG(note) as avg_note FROM rating WHERE recette_id = $1 GROUP BY recette_id", [recetteId]);
+    const result = await client.query(
+      "SELECT recette_id, AVG(note) as avg_note FROM rating WHERE recette_id = $1 GROUP BY recette_id",
+      [recetteId]
+    );
     const data = result.rows;
     client.release();
     return data;

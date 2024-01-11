@@ -61,8 +61,8 @@ const Feedback = ({ recette }) => {
             </Typography>
             
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-            {feedbackList ? (
-                feedbackList.length > 0 ? (
+            {feedbackList ? 
+                feedbackList.length > 0 ? 
                     feedbackList.map((feedback) => (
                         <>
                             <ListItem alignItems="flex-start" key={feedback.id}>
@@ -89,8 +89,8 @@ const Feedback = ({ recette }) => {
                             <Divider variant="inset" component="li" />
                         </>
                     ))
-                ) : null
-            ) : null}
+                : null
+            : null}
             </List>
 
             <Box component="form" noValidate onSubmit={addFeedback}>
