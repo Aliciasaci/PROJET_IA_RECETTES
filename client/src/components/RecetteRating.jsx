@@ -16,7 +16,6 @@ const RecetteRating = ({ recette }) => {
             const userId = auth.userId;
             const response = await axios.post(`http://localhost:5000/recettes/${recette}/rating`, { userId, newRating });
             if (response.data && response.data.result) {
-                console.log("response.data.result", response.data.result);
                 dispatchRating({ type: "ADD_RATING", payload: response.data.result });
                 setValue(value+newRating);
             }

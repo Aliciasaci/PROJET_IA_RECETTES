@@ -5,7 +5,10 @@ const RatingContext = createContext();
 const ratingReducer = (state, action) => {
     switch (action.type) {
         case 'ADD_RATING': {
-            console.log("state 1", state, action.payload);
+            console.log("action.payload", action.payload)
+            console.log("state", state)
+            console.log("action.payload.note", action.payload.note);
+            console.log("action.payload.recette_id", action.payload.recette_id)
             let existed = false;
             for (let i = 0; i < state.length; i++) {
                 if (state[i].recette_id === action.payload.recette_id) {
@@ -18,7 +21,6 @@ const ratingReducer = (state, action) => {
             if (!existed) {
                 state.push({recette_id: action.payload.recette_id, notes: [action.payload.note]});
             }
-            console.log("state 2", state);
             return state;
         }
         default:

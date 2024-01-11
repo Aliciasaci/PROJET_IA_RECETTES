@@ -66,6 +66,16 @@ html {}
   text-shadow: 0px 0px 1px rgb(67, 67, 67);
 }
 
+.heroSubtitlesmall {
+  font-family: "Agbalumo";
+  display: flex;
+  justify-content: center;
+  font-size: 1rem;
+  color: #252424;
+  margin: 1rem;
+  text-shadow: 0px 0px 1px rgb(67, 67, 67);
+}
+
 .searchbar-wrapper {
   display: flex;
   width: 60rem;
@@ -96,7 +106,7 @@ html {}
 .recettes-preview-wrapper {
   width: 90%;
   margin: auto;
-  margin-top: 6rem;
+  margin-top: 1rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -121,7 +131,7 @@ html {}
   display: flex;
   flex-wrap: wrap;
   justify-content: start;
-  background-color: #fffcee; 
+  background-color: #fffcee;
   padding: 5rem;
   padding-top: 1rem;
 }
@@ -161,15 +171,12 @@ html {}
   box-shadow: rgba(14, 30, 37, 0) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
   border-radius: 21px !important;
   display: flex;
+  justify-content: space-between;
+  flex-direction: column;
 }
 
 .ReactModal__Content input {
   margin-right: 1rem;
-}
-
-.ReactModal__Content span {
-  position: absolute;
-  right: 5%;
 }
 
 
@@ -239,7 +246,7 @@ background-color: rgb(255, 255, 213);
   position: relative;
 }
 
-.liste-courses li{
+.liste-courses li {
   text-decoration: underline;
   font-size: 1.1rem;
 }
@@ -258,30 +265,48 @@ background-color: rgb(255, 255, 213);
   z-index: 1;
 }
 
-.liste-courses{
+.liste-courses {
   background-color: #fffcee;
 }
 
-.shareon{
+.shareon {
   margin-top: 1rem;
 }
 
-.intructions-numbers{
+.intructions-numbers {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
   font-weight: bold;
 }
 
-.instructions ul, .ingredients ul{
+.instructions ul,
+.ingredients ul {
   list-style: none;
 }
 
-.ingredients>h2, .accompagnements>h2, .instructions>h2{
+.ingredients>h2,
+.accompagnements>h2,
+.instructions>h2 {
   font-family: 'Playfair Display', serif;
 }
 
 
-.recette-title{
+.recette-title {
   font-family: 'Playfair Display', serif;
 }
 
+.bonus {
+  margin-top: 6rem;
+}
+
+.bonus-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.calories {
+  display: flex;
+  width: 15rem;
+  align-items: center;
+}
