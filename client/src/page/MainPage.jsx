@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SearchBar from "../components/SearchBar";
 import RecettePreview from "../components/RecettePreview";
-import { Typography } from "@mui/material";
-import axios from 'axios';
-import IconButton from '@mui/material/IconButton';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import axios from "axios";
 import useFavorites from "../hooks/useFavorites";
 import useAuth from "../hooks/useAuth";
 
@@ -63,7 +60,9 @@ export default function MainPage() {
   async function fetchRandomRecipes() {
     try {
       const userId = auth.userId;
-      const response = await axios.get(`http://localhost:5000/fetchRandomRecipes/${userId}`);
+      const response = await axios.get(
+        `http://localhost:5000/fetchRandomRecipes/${userId}`
+      );
       const data = response.data;
       if (response.status === 200) {
         return data;
@@ -118,9 +117,7 @@ export default function MainPage() {
 
   return (
     <div className="heroBackground">
-      <div className="heroTitle">
-        Bienvenue sur CuisineConnect
-      </div>
+      <div className="heroTitle">Bienvenue sur CuisineConnect</div>
       <div className="heroSubtitle">
         Quelle recette simple et délicieuse allez-vous essayer aujourd'hui ?
       </div>
@@ -139,23 +136,21 @@ export default function MainPage() {
         </div>
       </div>
       <div className="recettes-preview-wrapper">
-        {recettes ? (
-          recettes.length > 0 ? (
-            recettes.map((recette, index) => (
-              <RecettePreview
-                className="recette"
-                key={index}
-                recette={recette[0]}
-              // addToFavorites={addToFavorites}
-              // removeFromFavorites={removeFromFavorites}
-              // isItemInFavorites={isItemInFavorites}
-              />
-            ))
-          ) : null
-        ) : null}
+        {recettes
+          ? recettes.length > 0
+            ? recettes.map((recette, index) => (
+                <RecettePreview
+                  className="recette"
+                  key={index}
+                  recette={recette[0]}
+                />
+              ))
+            : null
+          : null}
       </div>
       <div className="heroSubtitle">
-        Envie de ? Viens nous le dire.<br />
+        Envie de ? Venez nous le dire.
+        <br />
       </div>
       {randomRecipesFullData ? (
         <div className="home-suggestion-cards-wrapper">

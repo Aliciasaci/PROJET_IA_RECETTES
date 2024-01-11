@@ -171,15 +171,12 @@ html {}
   box-shadow: rgba(14, 30, 37, 0) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
   border-radius: 21px !important;
   display: flex;
+  justify-content: space-between;
+  flex-direction: column;
 }
 
 .ReactModal__Content input {
   margin-right: 1rem;
-}
-
-.ReactModal__Content span {
-  position: absolute;
-  right: 5%;
 }
 
 

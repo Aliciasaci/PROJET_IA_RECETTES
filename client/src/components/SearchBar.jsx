@@ -1,6 +1,5 @@
 import * as React from "react";
 import axios from "axios";
-import { json } from "react-router-dom";
 
 export default function searchBar({ onSubmit: onSubmit }) {
   const [searchPrompt, setSearchPrompt] = React.useState("");
