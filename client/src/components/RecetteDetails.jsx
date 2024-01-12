@@ -26,6 +26,7 @@ export default function Recette() {
   const [imageGroceries, setImageGroceries] = useState("");
   const { auth } = useAuth();
   const { favorites, dispatch } = useFavorites();
+  const [isLoading, setIsLoading] = useState(false);
 
   const isItemInFavorites = (recette) => {
     return favorites.some((item) => item.recette_id === recette);
@@ -171,12 +172,15 @@ export default function Recette() {
           setRecette(recipeData.recetteData);
           setIngredients(recipeData.recetteData.ingredients);
           dispatch({ type: "ADD_ALL_FAVORITE", payload: recipeData.favorites });
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Error fetching recipe details", error);
+        setIsLoading(false);
       }
     };
-
+    setIsLoading(true);
+    window.scrollTo(0, 0);
     fetchData();
   }, [id]);
 
@@ -284,15 +288,17 @@ export default function Recette() {
             </div>
           </div>
         ) : (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "5rem",
-            }}
-          >
-            <CircularProgress color="inherit" />
-          </div>
+          { isLoading } && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "5rem",
+              }}
+            >
+              <CircularProgress />
+            </div>
+          )
         )}
       </div>
       {listeCourses && (
