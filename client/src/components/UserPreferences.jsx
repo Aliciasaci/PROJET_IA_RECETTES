@@ -32,7 +32,6 @@ const UserPreferences = () => {
     setOpen(false);
   };
 
-  // sort the allpreferences array by categories
   const sortPreferences = (allPreferences) => {
     const categories = [];
     allPreferences.forEach((item) => {
@@ -62,12 +61,14 @@ const UserPreferences = () => {
       if (responseAdd.status === 200 && responseDelete.status === 200) {
         setOpen(true);
       } else {
-        setErrMsg("Erreur lors de l'enregistrement de vos préférences else");
+        setErrMsg(
+          "Erreur lors de l'enregistrement de vos préférences : " + error
+        );
         setOpen(true);
       }
     } catch (error) {
       setErrMsg(
-        "Erreur lors de l'enregistrement de vos préférences catch" + error
+        "Erreur lors de l'enregistrement de vos préférences : " + error
       );
       setOpen(true);
     }
@@ -142,51 +143,51 @@ const UserPreferences = () => {
               justifyContent: "space-around",
             }}
           >
-            {
-              // display all preferences by categories
-              sortedPreferences.map((categorie, index) => {
-                return (
-                  <div key={index}>
-                    <Typography variant="h6">
-                      {categorie[0].categorie}
-                    </Typography>
-                    <ul>
-                      {categorie.map((item, index) => {
-                        return (
-                          <li key={index}>
-                            <Checkbox
-                              id={item.id.toString()}
-                              name={item.titre}
-                              value={item.id}
-                              checked={currentPreference.some(
-                                (preference) =>
-                                  preference.preference_id === item.id
-                              )}
-                              onChange={handleChange}
-                              label={item.titre}
-                              sx={{
+            {sortedPreferences.map((categorie, index) => {
+              return (
+                <div key={index}>
+                  <Typography
+                    variant="h6"
+                    sx={{ fontFamily: "Agbalumo", marginBottom: "1rem" }}
+                  >
+                    {categorie[0].categorie}
+                  </Typography>
+                  <ul>
+                    {categorie.map((item, index) => {
+                      return (
+                        <li key={index}>
+                          <Checkbox
+                            id={item.id.toString()}
+                            name={item.titre}
+                            value={item.id}
+                            checked={currentPreference.some(
+                              (preference) =>
+                                preference.preference_id === item.id
+                            )}
+                            onChange={handleChange}
+                            label={item.titre}
+                            sx={{
+                              color: "orangered",
+                              "&.Mui-checked": {
                                 color: "orangered",
-                                "&.Mui-checked": {
-                                  color: "orangered",
-                                },
-                              }}
-                            />
-                            <label htmlFor={item.id}>{item.titre}</label>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                );
-              })
-            }
+                              },
+                            }}
+                          />
+                          <label htmlFor={item.id}>{item.titre}</label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
           </div>
           <Button
             type="submit"
             variant="contained"
             color="primary"
             onClick={handleSubmit}
-            style={{ margin: "2rem", alignSelf: "flex-end" }}
+            style={{ margin: "2rem", alignSelf: "center" }}
           >
             {" "}
             Enregistrer{" "}

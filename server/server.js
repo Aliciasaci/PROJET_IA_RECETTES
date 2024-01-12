@@ -113,7 +113,6 @@ async function fetchRecettesByTitle(recettes) {
     }
     const client = await pool.connect();
     const promises = recettesArray.map((recette) => {
-      console.log(recette);
       return client.query("SELECT * FROM recettes WHERE titre = $1", [recette]);
     });
 
@@ -121,7 +120,6 @@ async function fetchRecettesByTitle(recettes) {
     const data = results.map((result) => result.rows);
     client.release();
 
-    // console.log(data);
     return data;
   } catch (error) {
     console.error("Error executing query", error);
@@ -225,7 +223,6 @@ async function fetchRandomRecipes() {
     });
 
     result = completions.choices[0].message.content;
-    console.log("result", result);
     return result;
   } catch (error) {
     console.error("Error executing query", error);
