@@ -126,6 +126,8 @@ async function fetchRecettesByTitle(recettes) {
   }
 }
 
+
+
 app.post("/fetchRecettesByTitle", async (req, res) => {
   const recettesTitle = req.body.recettesTitles;
   try {
@@ -711,17 +713,21 @@ app.get("/fetchRecettesPerSeason", async (req, res) => {
 app.get("/fetchRecettesPerCalories", async (req, res) => {
   try {
     const recettes = await fetchRecettes();
+
+    // Récupérer les valeurs calMin et calMax des paramètres de la requête
+    const calMin = parseInt(req.query.calMin) || 0;  // Assurez-vous que les valeurs sont des nombres
+    const calMax = parseInt(req.query.calMax) || 1000;
+
     const messages = [];
-    const [minCalories, maxCalories] = [200, 800];
     modeCalories = true;
     messages.push({
       role: "system",
       content: `En te basant sur ces données ${JSON.stringify(
         recettes
       )}, Proposes les recettes qui ont un apport calorique compris entre ${[
-        minCalories,
-        maxCalories,
-      ]}. Renvoie SEULEMENT une array de string avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc] ainsi que l'apport calorique pour chaque recette. l'apport calorique est obligatoire . Pas un objet JSON. `,
+        calMin,
+        calMax,
+      ]}. Renvoie SEULEMENT une array de string avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1 (calories)", "Titre2 (calories)", ...etc] ainsi que l'apport calorique pour chaque recette. l'apport calorique est obligatoire. Pas un objet JSON.`,
     });
 
     const completions = await openai.chat.completions.create({
@@ -737,6 +743,55 @@ app.get("/fetchRecettesPerCalories", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+
+app.post("/fetchRecettesByCalories", async (req, res) => {
+  const recettesTitle = req.body.recettesTitles;
+  try {
+    const recettesData = await fetchRecettesByCalories(recettesTitle);
+    res.json({ recettesData });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+async function fetchRecettesByCalories(recettes) {
+  try {
+    let recettesArray = [];
+    const regex = /(?: - \d+ calories|\(\d+ calories\))/;
+
+    if (typeof recettes == "object") {
+      recettesArray = Object.values(recettes);
+    } else {
+      recettesArray = JSON.parse(recettes);
+    }
+
+    const client = await pool.connect();
+    const promises = recettesArray.map((recette) => {
+      recette = recette.replace(regex, '');
+      recette = recette.slice(0, -1);
+      return client.query("SELECT * FROM recettes WHERE titre = $1", [recette]);
+    });
+
+    const results = await Promise.all(promises);
+    const data = results.map((result) => result.rows);
+    client.release();
+
+    for (let tableau of data) {
+      for (let objet of tableau) {
+        for (let i = 0; i < recettesArray.length; i++) {
+          if (recettesArray[i].includes(objet.titre)) {
+            objet.titre = recettesArray[i];
+          }
+        }
+      }
+    }
+    return data;
+  } catch (error) {
+    console.error("Error executing query", error);
+  }
+}
 
 async function getFavoritesByUser(userId) {
   try {
