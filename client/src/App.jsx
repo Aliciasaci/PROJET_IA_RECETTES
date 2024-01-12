@@ -7,7 +7,7 @@ import SignUpForm from "./components/SignUpForm";
 import MainPage from "./page/MainPage";
 import RecetteDetails from "./components/RecetteDetails";
 import RecettesSuggestions from "./components/RecettesSuggestions";
-import ChatbotModal from "./components/ChatbotModal"; // Import the ChatbotModal component
+import ChatbotModal from "./components/ChatbotModal";
 import RequireAuth from "./components/RequireAuth";
 import UserProfile from "./components/UserProfile";
 

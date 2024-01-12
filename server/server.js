@@ -543,6 +543,130 @@ app.get("/recettes/:id/rating", async (req, res) => {
   }
 });
 
+async function fetchPreferencesAlimentaires() {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(
+      "SELECT preferences_alimentaires.id, preferences_alimentaires.titre, categories_preferences.titre as categorie FROM preferences_alimentaires JOIN categories_preferences ON preferences_alimentaires.categorie_id = categories_preferences.id"
+    );
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.get("/preferencesAlimentaires", async (req, res) => {
+  try {
+    const result = await fetchPreferencesAlimentaires();
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function addPreferencesAlimentaires(userId, preferencesIds, autre) {
+  try {
+    const client = await pool.connect();
+
+    for (let i = 0; i < preferencesIds.length; i++) {
+      const preferenceId = preferencesIds[i].preference_id;
+
+      const checkResult = await client.query(
+        "SELECT * FROM preferences_users WHERE user_id = $1 AND preference_id = $2",
+        [userId, preferenceId]
+      );
+
+      if (checkResult.rows[0]) {
+        continue;
+      }
+
+      await client.query(
+        "INSERT INTO preferences_users (user_id, preference_id, autre) VALUES ($1, $2, $3)",
+        [userId, preferenceId, autre]
+      );
+    }
+
+    client.release();
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.post("/preferencesAlimentaires", async (req, res) => {
+  try {
+    const { userId, preferencesId, autre } = req.body;
+    const result = await addPreferencesAlimentaires(
+      userId,
+      preferencesId,
+      autre
+    );
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function deletePreferencesAlimentaires(userId, preferencesIds) {
+  try {
+    const client = await pool.connect();
+
+    const result = await client.query(
+      "DELETE FROM preferences_users WHERE user_id = $1 AND preference_id = ANY($2::int[]) RETURNING *",
+      [userId, preferencesIds]
+    );
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.delete("/preferencesAlimentaires", async (req, res) => {
+  try {
+    const { userId, preferencesId } = req.body;
+    const result = await deletePreferencesAlimentaires(userId, preferencesId);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function fetchPreferencesAlimentairesByUser(userId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(
+      "SELECT preference_id FROM preferences_users WHERE user_id = $1",
+      [userId]
+    );
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.get("/preferencesAlimentaires/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await fetchPreferencesAlimentairesByUser(userId);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
