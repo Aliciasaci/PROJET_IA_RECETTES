@@ -169,6 +169,22 @@ app.get("/fetchRecetteById/:id/:userId", async (req, res) => {
   }
 });
 
+// for user non connecté
+app.get("/fetchRecetteByIdBasic/:id", async (req, res) => {
+  const recetteId = req.params.id;
+  try {
+    const recetteData = await fetchRecetteById(recetteId);
+    if (recetteData) {
+      res.json({ recetteData });
+    } else {
+      res.status(404).json({ message: "Recette non trouvée" });
+    }
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 async function fetchSimilarRecipes(recetteTitle) {
   const recettes = await fetchRecettes();
   try {
@@ -236,6 +252,17 @@ app.get("/fetchRandomRecipes/:userId", async (req, res) => {
     const { userId } = req.params;
     const favorites = await fetchFavorites(userId);
     res.json({ randomRecipes, favorites });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// for user non connecté
+app.get("/fetchRandomRecipesBasic", async (req, res) => {
+  try {
+    const randomRecipes = await fetchRandomRecipes();
+    res.json({ randomRecipes });
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");

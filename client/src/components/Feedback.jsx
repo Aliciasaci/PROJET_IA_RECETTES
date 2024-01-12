@@ -63,9 +63,9 @@ const Feedback = ({ recette }) => {
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
             {feedbackList ? 
                 feedbackList.length > 0 ? 
-                    feedbackList.map((feedback) => (
+                    feedbackList.map((feedback, index) => (
                         <>
-                            <ListItem alignItems="flex-start" key={feedback.id}>
+                            <ListItem alignItems="flex-start" key={index}>
                             <ListItemAvatar>
                             <Avatar alt={feedback.nom} src="" />
                             </ListItemAvatar>
