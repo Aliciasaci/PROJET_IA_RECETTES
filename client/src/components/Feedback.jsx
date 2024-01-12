@@ -16,23 +16,30 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Feedback = ({ recette }) => {
     const { auth } = useAuth();
     const [newFeedback, setNewFeedback] = useState('');
     const [feedbackList, setFeedbackList] = useState([]);
-
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const addFeedback = async (event) => {
         event.preventDefault();
         try {
-            const userId = auth.userId;
-            const response = await axios.post(`http://localhost:5000/recettes/${recette}/feedback`, { userId, newFeedback });
-            if (response.data) {
-                const newFeedbackList = response.data.feedbackList;
-                setFeedbackList(newFeedbackList);
-                setNewFeedback('');
+            if (!auth.userId) {
+                navigate("/signin", { state: { from: location } });
+            } else {
+                const userId = auth.userId;
+                const response = await axios.post(`http://localhost:5000/recettes/${recette}/feedback`, { userId, newFeedback });
+                if (response.data) {
+                    const newFeedbackList = response.data.feedbackList;
+                    setFeedbackList(newFeedbackList);
+                    setNewFeedback('');
+                }
             }
+            
         } catch (error) {
             console.error("Error adding to feedback", error);
         }
@@ -63,9 +70,9 @@ const Feedback = ({ recette }) => {
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
             {feedbackList ? 
                 feedbackList.length > 0 ? 
-                    feedbackList.map((feedback) => (
+                    feedbackList.map((feedback, index) => (
                         <>
-                            <ListItem alignItems="flex-start" key={feedback.id}>
+                            <ListItem alignItems="flex-start" key={index}>
                             <ListItemAvatar>
                             <Avatar alt={feedback.nom} src="" />
                             </ListItemAvatar>

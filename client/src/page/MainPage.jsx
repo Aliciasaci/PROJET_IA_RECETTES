@@ -12,6 +12,8 @@ export default function MainPage() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const { favorites, dispatch } = useFavorites();
   const { auth } = useAuth();
+  const [calMin, setCalMin] = useState('');
+  const [calMax, setCalMax] = useState('');
 
   const handleSearch = (search) => {
     setRecettes(search);
@@ -36,9 +38,22 @@ export default function MainPage() {
 
   async function fetchRecettesParCalories() {
     try {
-      const response = await axios.get(`http://localhost:5000/fetchRecettesPerCalories/`);
+      console.log('Valeur Cal Min:', calMin);
+      console.log('Valeur Cal Max:', calMax);
+      const response = await axios.get(`http://localhost:5000/fetchRecettesPerCalories/`, {
+        params: {
+          calMin: calMin,
+          calMax: calMax,
+        },
+      });
       const jsonObject = response.data.assistantResponse;
-      handlePostSearch(jsonObject);
+      handlePostSearchCalories(jsonObject);
+
+      //changer couleur btn
+      document.querySelector('.btn-calories').style.backgroundColor = "orange";
+      document.querySelector('.btn-calories').style.color = "white";
+
+
 
     } catch (error) {
       console.error("Error fetching seasonal recipes", error);
@@ -46,11 +61,20 @@ export default function MainPage() {
     }
   }
 
+  const handlePostSearchCalories = React.useCallback((recettesTitles) => {
+    axios
+      .post("http://localhost:5000/fetchRecettesByCalories", { recettesTitles })
+      .then((response) => {
+        const jsonObject = response.data.recettesData;
+        setRecettes(jsonObject);
+      });
+  }, []);
+
+
   const handlePostSearch = React.useCallback((recettesTitles) => {
     axios
       .post("http://localhost:5000/fetchRecettesByTitle", { recettesTitles })
       .then((response) => {
-        console.log(response.data.recettesData);
         const jsonObject = response.data.recettesData;
         setRecettes(jsonObject);
       });
@@ -58,11 +82,18 @@ export default function MainPage() {
 
 
   async function fetchRandomRecipes() {
+    let response;
     try {
-      const userId = auth.userId;
-      const response = await axios.get(
+      if (!auth.userId) {
+        response = await axios.get(
+          `http://localhost:5000/fetchRandomRecipesBasic`
+        );
+      } else {
+        const userId = auth.userId;
+        response = await axios.get(
         `http://localhost:5000/fetchRandomRecipes/${userId}`
-      );
+        );
+      }
       const data = response.data;
       if (response.status === 200) {
         return data;
@@ -83,6 +114,7 @@ export default function MainPage() {
         dispatch({ type: "ADD_ALL_FAVORITE", payload: data.favorites });
         setDataLoaded(true);
         handleRecetteSuggestionsDetail(data.randomRecipes);
+        
       } catch (error) {
         console.error("Error fetching recipes", error);
       }
@@ -129,9 +161,21 @@ export default function MainPage() {
         <div className="bonus-buttons">
           <button className="button mr-2 btn-saison" onClick={fetchRecettesParSaison}>de saison</button>
           <div className="calories">
-            <button className="button" onClick={fetchRecettesParCalories}>Calories</button>
-            <input className="input" type="text" placeholder="Cal min"></input>
-            <input className="input" type="text" placeholder="Cal max"></input>
+            <input
+              className="input"
+              type="text"
+              placeholder="Cal min"
+              value={calMin}
+              onChange={(e) => setCalMin(e.target.value)}
+            />
+            <input
+              className="input"
+              type="text"
+              placeholder="Cal max"
+              value={calMax}
+              onChange={(e) => setCalMax(e.target.value)}
+            />
+            <button className="button btn-calories" onClick={fetchRecettesParCalories}>Calories</button>
           </div>
         </div>
       </div>
@@ -139,12 +183,12 @@ export default function MainPage() {
         {recettes
           ? recettes.length > 0
             ? recettes.map((recette, index) => (
-                <RecettePreview
-                  className="recette"
-                  key={index}
-                  recette={recette[0]}
-                />
-              ))
+              <RecettePreview
+                className="recette"
+                key={index}
+                recette={recette[0]}
+              />
+            ))
             : null
           : null}
       </div>

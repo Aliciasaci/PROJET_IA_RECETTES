@@ -15,12 +15,12 @@ import axios from "axios";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import AccessTime from "@mui/icons-material/AccessTime";
 
-export default function RecettePreview({ recette }) {
+export default function RecettePreview({ recette, onRemove }) {
   const navigate = useNavigate();
   const { favorites, dispatch } = useFavorites();
   const { auth } = useAuth();
 
-  const isItemInFavorites = (recette) => {
+  const isItemInFavorites = (recette) => {  
     return favorites.some((item) => item.recette_id === recette);
   };
 
@@ -47,6 +47,7 @@ export default function RecettePreview({ recette }) {
         { data: { userId } }
       );
       dispatch({ type: "REMOVE_FAVORITE", payload: recette });
+      onRemove(recette);
     } catch (error) {
       console.error("Error removing from favorites", error);
     }
@@ -91,31 +92,34 @@ export default function RecettePreview({ recette }) {
         </Typography>
       </CardContent>
       <CardActions sx={{ display: "flex", justifyContent: "space-around" }}>
-        {isItemInFavorites(recette.id) ? (
-          <IconButton
-            aria-label="remove-from-favorites"
-            color="error"
-            onClick={(event) => {
-              event.stopPropagation();
-              removeFromFavorites(recette.id);
-            }}
-            variant="text"
-          >
-            <FavoriteIcon />
-          </IconButton>
-        ) : (
-          <IconButton
-            aria-label="add-to-favorites"
-            onClick={(event) => {
-              event.stopPropagation();
-              addToFavorites(recette.id);
-            }}
-            color="error"
-            variant="text"
-          >
-            <FavoriteBorderIcon />
-          </IconButton>
-        )}
+        {auth.email ?
+          isItemInFavorites(recette.id) ? (
+            <IconButton
+              aria-label="remove-from-favorites"
+              color="error"
+              onClick={(event) => {
+                event.stopPropagation();
+                removeFromFavorites(recette.id);
+              }}
+              variant="text"
+            >
+              <FavoriteIcon />
+            </IconButton>
+          ) : (
+            <IconButton
+              aria-label="add-to-favorites"
+              onClick={(event) => {
+                event.stopPropagation();
+                addToFavorites(recette.id);
+              }}
+              color="error"
+              variant="text"
+            >
+              <FavoriteBorderIcon />
+            </IconButton>
+          )
+        : null
+        }
         <div style={{ display: "flex" }}>
           <AccessTime style={{ marginRight: "0.5rem" }} />{" "}
           {recette.tempspreparation}min

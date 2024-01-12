@@ -2,23 +2,30 @@ import Rating from '@mui/material/Rating';
 import useAuth from '../hooks/useAuth';
 import axios from 'axios';
 import useRating from '../hooks/useRating';
-import { useEffect, useState } from 'react';
-import { useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const RecetteRating = ({ recette }) => {
     const { auth } = useAuth();
     const { rating, dispatchRating } = useRating();
     const [ value, setValue ] = useState(0);
     let initialRating = useRef(0);
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const addRating = async (recette, newRating) => {
         try {
-            const userId = auth.userId;
-            const response = await axios.post(`http://localhost:5000/recettes/${recette}/rating`, { userId, newRating });
-            if (response.data && response.data.result) {
-                dispatchRating({ type: "ADD_RATING", payload: response.data.result });
-                setValue(value+newRating);
+            if (!auth.userId) {
+                navigate("/signin", { state: { from: location } });
+            } else {
+                const userId = auth.userId;
+                const response = await axios.post(`http://localhost:5000/recettes/${recette}/rating`, { userId, newRating });
+                if (response.data && response.data.result) {
+                    dispatchRating({ type: "ADD_RATING", payload: response.data.result });
+                    setValue(value+newRating);
+                }
             }
+            
         } catch (error) {
             console.error("Error adding to rating", error);
         }

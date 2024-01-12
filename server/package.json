@@ -10,7 +10,9 @@
     "fillrecettes": "node ./scripts/fillrecettes.js",
     "runusers": "node ./scripts/runusers.js",
     "runfeedback": "node ./scripts/runfeedback.js",
-    "runfull": "node ./scripts/runtablesfull.js"
+    "runfull": "node ./scripts/runtablesfull.js",
+    "fillprefalimentaires": "node ./scripts/fillpreferencesalimentaires.js",
+    "fillcategories": "node ./scripts/fillcategoriespreferences.js"
   },
   "author": "",
   "license": "ISC",
