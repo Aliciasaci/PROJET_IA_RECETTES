@@ -134,9 +134,8 @@ html {}
   margin-top: 3rem;
   display: flex;
   flex-wrap: wrap;
-  justify-content: start;
+  justify-content: center;
   background-color: #fffcee;
-  padding: 5rem;
   padding-top: 1rem;
 }
 
