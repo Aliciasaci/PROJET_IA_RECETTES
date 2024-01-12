@@ -4,6 +4,7 @@ import RecettePreview from "../components/RecettePreview";
 import axios from "axios";
 import useFavorites from "../hooks/useFavorites";
 import useAuth from "../hooks/useAuth";
+import { CircularProgress } from "@mui/material";
 
 export default function MainPage() {
   const [recettes, setRecettes] = useState(null);
@@ -12,8 +13,8 @@ export default function MainPage() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const { favorites, dispatch } = useFavorites();
   const { auth } = useAuth();
-  const [calMin, setCalMin] = useState('');
-  const [calMax, setCalMax] = useState('');
+  const [calMin, setCalMin] = useState("");
+  const [calMax, setCalMax] = useState("");
 
   const handleSearch = (search) => {
     setRecettes(search);
@@ -21,15 +22,15 @@ export default function MainPage() {
 
   async function fetchRecettesParSaison() {
     try {
-      const response = await axios.get(`http://localhost:5000/fetchRecettesPerSeason/`);
+      const response = await axios.get(
+        `http://localhost:5000/fetchRecettesPerSeason/`
+      );
       const jsonObject = response.data.assistantResponse;
       handlePostSearch(jsonObject);
 
-
       //changer couleur btn
-      document.querySelector('.btn-saison').style.backgroundColor = "orange";
-      document.querySelector('.btn-saison').style.color = "white";
-
+      document.querySelector(".btn-saison").style.backgroundColor = "orange";
+      document.querySelector(".btn-saison").style.color = "white";
     } catch (error) {
       console.error("Error fetching seasonal recipes", error);
       throw error;
@@ -38,23 +39,23 @@ export default function MainPage() {
 
   async function fetchRecettesParCalories() {
     try {
-      console.log('Valeur Cal Min:', calMin);
-      console.log('Valeur Cal Max:', calMax);
-      const response = await axios.get(`http://localhost:5000/fetchRecettesPerCalories/`, {
-        params: {
-          calMin: calMin,
-          calMax: calMax,
-        },
-      });
+      console.log("Valeur Cal Min:", calMin);
+      console.log("Valeur Cal Max:", calMax);
+      const response = await axios.get(
+        `http://localhost:5000/fetchRecettesPerCalories/`,
+        {
+          params: {
+            calMin: calMin,
+            calMax: calMax,
+          },
+        }
+      );
       const jsonObject = response.data.assistantResponse;
       handlePostSearchCalories(jsonObject);
 
       //changer couleur btn
-      document.querySelector('.btn-calories').style.backgroundColor = "orange";
-      document.querySelector('.btn-calories').style.color = "white";
-
-
-
+      document.querySelector(".btn-calories").style.backgroundColor = "orange";
+      document.querySelector(".btn-calories").style.color = "white";
     } catch (error) {
       console.error("Error fetching seasonal recipes", error);
       throw error;
@@ -70,7 +71,6 @@ export default function MainPage() {
       });
   }, []);
 
-
   const handlePostSearch = React.useCallback((recettesTitles) => {
     axios
       .post("http://localhost:5000/fetchRecettesByTitle", { recettesTitles })
@@ -79,7 +79,6 @@ export default function MainPage() {
         setRecettes(jsonObject);
       });
   }, []);
-
 
   async function fetchRandomRecipes() {
     let response;
@@ -91,7 +90,7 @@ export default function MainPage() {
       } else {
         const userId = auth.userId;
         response = await axios.get(
-        `http://localhost:5000/fetchRandomRecipes/${userId}`
+          `http://localhost:5000/fetchRandomRecipes/${userId}`
         );
       }
       const data = response.data;
@@ -114,7 +113,6 @@ export default function MainPage() {
         dispatch({ type: "ADD_ALL_FAVORITE", payload: data.favorites });
         setDataLoaded(true);
         handleRecetteSuggestionsDetail(data.randomRecipes);
-        
       } catch (error) {
         console.error("Error fetching recipes", error);
       }
@@ -155,11 +153,14 @@ export default function MainPage() {
       </div>
       <SearchBar onSubmit={handleSearch} />
       <div className="bonus">
-        <div className="heroSubtitle">
-          Je veux plutôt des recettes
-        </div>
+        <div className="heroSubtitle">Je veux plutôt des recettes</div>
         <div className="bonus-buttons">
-          <button className="button mr-2 btn-saison" onClick={fetchRecettesParSaison}>de saison</button>
+          <button
+            className="button mr-2 btn-saison"
+            onClick={fetchRecettesParSaison}
+          >
+            de saison
+          </button>
           <div className="calories">
             <input
               className="input"
@@ -175,7 +176,12 @@ export default function MainPage() {
               value={calMax}
               onChange={(e) => setCalMax(e.target.value)}
             />
-            <button className="button btn-calories" onClick={fetchRecettesParCalories}>Calories</button>
+            <button
+              className="button btn-calories"
+              onClick={fetchRecettesParCalories}
+            >
+              Calories
+            </button>
           </div>
         </div>
       </div>
@@ -183,12 +189,12 @@ export default function MainPage() {
         {recettes
           ? recettes.length > 0
             ? recettes.map((recette, index) => (
-              <RecettePreview
-                className="recette"
-                key={index}
-                recette={recette[0]}
-              />
-            ))
+                <RecettePreview
+                  className="recette"
+                  key={index}
+                  recette={recette[0]}
+                />
+              ))
             : null
           : null}
       </div>
@@ -200,7 +206,17 @@ export default function MainPage() {
         <div className="home-suggestion-cards-wrapper">
           {parseRandomRecipes(randomRecipesFullData)}
         </div>
-      ) : null}
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "5rem",
+          }}
+        >
+          <CircularProgress color="inherit" />
+        </div>
+      )}
     </div>
   );
 }
