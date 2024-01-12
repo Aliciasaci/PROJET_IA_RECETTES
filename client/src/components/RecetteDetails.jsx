@@ -117,10 +117,19 @@ export default function Recette() {
       }
       const data = response.data;
       if (response.status === 200) {
-        const similarRecipesTemp = await axios.get(
-          `http://localhost:5000/fetchSimilarRecipes?titre=${data.recetteData.titre}`
-        );
+        let similarRecipesTemp;
+        if (!auth.userId) {
+            similarRecipesTemp = await axios.get(
+            `http://localhost:5000/fetchSimilarRecipesBasic?titre=${data.recetteData.titre}`
+          );
+          } else {
+            const userId = auth.userId;
+            similarRecipesTemp = await axios.get(
+              `http://localhost:5000/fetchSimilarRecipes/${userId}?titre=${data.recetteData.titre}`
+            );
+        }
         setSimilarRecipes(similarRecipesTemp.data.similarRecipes);
+        dispatch({ type: "ADD_ALL_FAVORITE", payload: similarRecipesTemp.favorites });
 
         return data;
       } else {
