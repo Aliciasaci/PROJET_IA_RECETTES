@@ -82,11 +82,18 @@ export default function MainPage() {
 
 
   async function fetchRandomRecipes() {
+    let response;
     try {
-      const userId = auth.userId;
-      const response = await axios.get(
+      if (!auth.userId) {
+        response = await axios.get(
+          `http://localhost:5000/fetchRandomRecipesBasic`
+        );
+      } else {
+        const userId = auth.userId;
+        response = await axios.get(
         `http://localhost:5000/fetchRandomRecipes/${userId}`
-      );
+        );
+      }
       const data = response.data;
       if (response.status === 200) {
         return data;
@@ -107,6 +114,7 @@ export default function MainPage() {
         dispatch({ type: "ADD_ALL_FAVORITE", payload: data.favorites });
         setDataLoaded(true);
         handleRecetteSuggestionsDetail(data.randomRecipes);
+        
       } catch (error) {
         console.error("Error fetching recipes", error);
       }
