@@ -213,11 +213,24 @@ async function fetchSimilarRecipes(recetteTitle) {
   }
 }
 
-app.get("/fetchSimilarRecipes", async (req, res) => {
+app.get("/fetchSimilarRecipesBasic", async (req, res) => {
   const titre = req.query.titre;
   try {
     const similarRecipes = await fetchSimilarRecipes(titre);
     res.json({ similarRecipes });
+  } catch (error) {
+    console.error("Error processing request", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/fetchSimilarRecipes/:userId", async (req, res) => {
+  const titre = req.query.titre;
+  try {
+    const similarRecipes = await fetchSimilarRecipes(titre);
+    const { userId } = req.params;
+    const favorites = await fetchFavorites(userId);
+    res.json({ similarRecipes, favorites });
   } catch (error) {
     console.error("Error processing request", error);
     res.status(500).send("Internal Server Error");
