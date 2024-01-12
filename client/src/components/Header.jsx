@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  AppBar,
-  Button,
-  Container,
-  Menu,
-  MenuItem,
-  Toolbar,
-  Typography,
-} from "@mui/material";
+import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 

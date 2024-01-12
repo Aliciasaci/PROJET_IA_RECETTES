@@ -9,9 +9,11 @@ import RecetteDetails from "./components/RecetteDetails";
 import ChatbotModal from "./components/ChatbotModal";
 import RequireAuth from "./components/RequireAuth";
 import UserProfile from "./page/UserProfile";
+import useAuth from "./hooks/useAuth";
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { auth } = useAuth();
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -34,7 +36,11 @@ function App() {
             <Route path="/me" element={<UserProfile />} />
           </Route>
         </Routes>
-        <div className="chatbot-icon" onClick={openModal}>
+        <div
+          className="chatbot-icon"
+          hidden={auth.userId ? false : true}
+          onClick={openModal}
+        >
           <img src="../src/assets/chefIcon.png" alt="chatbot" />
         </div>
         <ChatbotModal isOpen={isModalOpen} onRequestClose={closeModal} />
