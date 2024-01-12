@@ -89,9 +89,14 @@ export default function Recette() {
   };
 
   async function fetchRecipeDetails(recipeId) {
+    let response;
     try {
-      const userId = auth.userId;
-      const response = await axios.get(`http://localhost:5000/fetchRecetteById/${recipeId}/${userId}`);
+      if (!auth.userId) {
+        response = await axios.get(`http://localhost:5000/fetchRecetteByIdBasic/${recipeId}`);
+      } else {
+        const userId = auth.userId;
+        response = await axios.get(`http://localhost:5000/fetchRecetteById/${recipeId}/${userId}`);
+      }
       const data = response.data;
       if (response.status === 200) {
 
@@ -166,15 +171,17 @@ export default function Recette() {
                 <div className="media-content">
                   <h1 className="title recette-title">{recette.titre}</h1>
                 </div>
-                {isItemInFavorites(recette.id) ? (
-                  <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="error" variant="text">
-                    <FavoriteIcon />
-                  </IconButton>
-                ) : (
-                  <IconButton aria-label="add-to-favorites" onClick={() => addToFavorites(recette.id)} color="error" variant="text">
-                    <FavoriteBorderIcon />
-                  </IconButton>
-                )}
+                {auth.userId ?
+                  isItemInFavorites(recette.id) ? (
+                    <IconButton aria-label="remove-from-favorites" onClick={() => removeFromFavorites(recette.id)} color="error" variant="text">
+                      <FavoriteIcon />
+                    </IconButton>
+                  ) : (
+                    <IconButton aria-label="add-to-favorites" onClick={() => addToFavorites(recette.id)} color="error" variant="text">
+                      <FavoriteBorderIcon />
+                    </IconButton>
+                  )
+                : null}
               </div>
             </div>
 
@@ -199,15 +206,18 @@ export default function Recette() {
 
             <button className="ml-6 button is-rounded is-link is-outlined" onClick={handleSubmitGroceries} >Liste de course</button>
             <button className="ml-2 button is-rounded is-link is-outlined" onClick={handleSubmitAccompagnement} >Accompagnement</button>
+            {auth.userId ?
+              <>
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+                  <Typography component="legend">Donnez votre avis : </Typography>
+                  <RecetteRating recette={recette.id} />
+                </div>
 
-            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-              <Typography component="legend">Donnez votre avis : </Typography>
-              <RecetteRating recette={recette.id} />
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-              <Feedback recette={recette.id} />
-            </div>
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+                  <Feedback recette={recette.id} />
+                </div>
+              </>  
+            : null}
           </div>
 
         ) : (

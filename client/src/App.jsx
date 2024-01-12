@@ -30,9 +30,9 @@ function App() {
         <Routes>
           <Route path="/signin" element={<SignInForm />} />
           <Route path="/signup" element={<SignUpForm />} />
+          <Route path="/" element={<MainPage />} />
+          <Route path="/recetteDetails/:id" element={<RecetteDetails />} />
           <Route element={<RequireAuth />}>
-            <Route path="/" element={<MainPage />} />
-            <Route path="/recetteDetails/:id" element={<RecetteDetails />} />
             <Route path="/me" element={<UserProfile />} />
           </Route>
         </Routes>
