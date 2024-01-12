@@ -10,6 +10,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import * as Shareon from "shareon";
 import "shareon/css";
 import domtoimage from 'dom-to-image';
+import Feedback from './Feedback';
 
 import RecetteRating from './RecetteRating';
 import Typography from '@mui/material/Typography';
@@ -202,6 +203,10 @@ export default function Recette() {
             <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
               <Typography component="legend">Donnez votre avis : </Typography>
               <RecetteRating recette={recette.id} />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+              <Feedback recette={recette.id} />
             </div>
           </div>
 

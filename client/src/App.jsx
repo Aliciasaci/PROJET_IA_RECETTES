@@ -10,6 +10,7 @@ import RecettesSuggestions from "./components/RecettesSuggestions";
 import ChatbotModal from "./components/ChatbotModal";
 import RequireAuth from "./components/RequireAuth";
 import UserProfile from "./components/UserProfile";
+import UserFavorite from "./page/UserFavorite";
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,6 +34,7 @@ function App() {
             <Route path="/" element={<MainPage />} />
             <Route path="/recetteDetails/:id" element={<RecetteDetails />} />
             <Route path="/me" element={<UserProfile />} />
+            <Route path="/me/favorites" element={<UserFavorite />} />
           </Route>
         </Routes>
         <div className="chatbot-icon" onClick={openModal}>
