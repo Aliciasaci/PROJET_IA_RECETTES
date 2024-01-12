@@ -113,7 +113,6 @@ async function fetchRecettesByTitle(recettes) {
     }
     const client = await pool.connect();
     const promises = recettesArray.map((recette) => {
-      console.log(recette);
       return client.query("SELECT * FROM recettes WHERE titre = $1", [recette]);
     });
 
@@ -121,7 +120,6 @@ async function fetchRecettesByTitle(recettes) {
     const data = results.map((result) => result.rows);
     client.release();
 
-    // console.log(data);
     return data;
   } catch (error) {
     console.error("Error executing query", error);
@@ -177,7 +175,14 @@ async function fetchSimilarRecipes(recetteTitle) {
     const completions = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: `En te basant sur ces recettes ${JSON.stringify(recettes)}. recommandes toutes celles qui ressemblent à la recette suivante: ${JSON.stringify(recetteTitle)}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte. renvoie exactement 5 recettes. ne renvoie jamais la recette sur laquelle tu te base. ` },
+        {
+          role: "system",
+          content: `En te basant sur ces recettes ${JSON.stringify(
+            recettes
+          )}. recommandes toutes celles qui ressemblent à la recette suivante: ${JSON.stringify(
+            recetteTitle
+          )}. renvoi un objet json dont la clè du json est le terme 'recettes'. L'objet contient les titres des recettes. ne renvoi aucun autre texte. renvoie exactement 5 recettes. ne renvoie jamais la recette sur laquelle tu te base. `,
+        },
       ],
       format: "json",
     });
@@ -218,7 +223,6 @@ async function fetchRandomRecipes() {
     });
 
     result = completions.choices[0].message.content;
-    console.log("result", result)
     return result;
   } catch (error) {
     console.error("Error executing query", error);
@@ -581,7 +585,10 @@ app.get("/recettes/:id/rating", async (req, res) => {
 async function addFeedback(userId, recetteId, newFeedback) {
   try {
     const client = await pool.connect();
-    const result = await client.query("INSERT INTO feedback (user_id, recette_id, commentaire) VALUES ($1, $2, $3) RETURNING *", [userId, recetteId, newFeedback]);
+    const result = await client.query(
+      "INSERT INTO feedback (user_id, recette_id, commentaire) VALUES ($1, $2, $3) RETURNING *",
+      [userId, recetteId, newFeedback]
+    );
     const data = result.rows[0];
     client.release();
     return data;
@@ -602,12 +609,15 @@ app.post("/recettes/:id/feedback", async (req, res) => {
     console.error("Error", error);
     throw error;
   }
-})
+});
 
 async function getFeedback(recetteId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT u.nom, u.prenom, f.user_id, f.recette_id, f.commentaire, f.created_at FROM users u INNER JOIN feedback f on u.id = f.user_id AND f.recette_id = $1", [recetteId]);
+    const result = await client.query(
+      "SELECT u.nom, u.prenom, f.user_id, f.recette_id, f.commentaire, f.created_at FROM users u INNER JOIN feedback f on u.id = f.user_id AND f.recette_id = $1",
+      [recetteId]
+    );
     const data = result.rows;
     client.release();
     return data;
@@ -631,10 +641,19 @@ app.get("/recettes/:id/feedback", async (req, res) => {
 /// BONUUSSS
 app.get("/fetchRecettesPerSeason", async (req, res) => {
   try {
-
     let mois = [
-      "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-      "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+      "Janvier",
+      "Février",
+      "Mars",
+      "Avril",
+      "Mai",
+      "Juin",
+      "Juillet",
+      "Août",
+      "Septembre",
+      "Octobre",
+      "Novembre",
+      "Décembre",
     ];
     let dateActuelle = new Date();
     let moisActuel = mois[dateActuelle.getMonth()];
@@ -662,10 +681,8 @@ app.get("/fetchRecettesPerSeason", async (req, res) => {
   }
 });
 
-
 app.get("/fetchRecettesPerCalories", async (req, res) => {
   try {
-
     const recettes = await fetchRecettes();
     const messages = [];
     const [minCalories, maxCalories] = [200, 800];
@@ -674,7 +691,10 @@ app.get("/fetchRecettesPerCalories", async (req, res) => {
       role: "system",
       content: `En te basant sur ces données ${JSON.stringify(
         recettes
-      )}, Proposes les recettes qui ont un apport calorique compris entre ${[minCalories, maxCalories]}. Renvoie SEULEMENT une array de string avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc] ainsi que l'apport calorique pour chaque recette. l'apport calorique est obligatoire . Pas un objet JSON. `,
+      )}, Proposes les recettes qui ont un apport calorique compris entre ${[
+        minCalories,
+        maxCalories,
+      ]}. Renvoie SEULEMENT une array de string avec les titres des recettes qui correspondent le mieux à la demande au format ["Titre1", "Titre2", ...etc] ainsi que l'apport calorique pour chaque recette. l'apport calorique est obligatoire . Pas un objet JSON. `,
     });
 
     const completions = await openai.chat.completions.create({
@@ -694,7 +714,10 @@ app.get("/fetchRecettesPerCalories", async (req, res) => {
 async function getFavoritesByUser(userId) {
   try {
     const client = await pool.connect();
-    const result = await client.query("SELECT r.id, r.titre, r.tempspreparation, r.photo FROM recettes r JOIN favorite_recettes f ON r.id = f.recette_id AND f.user_id = $1", [userId]);
+    const result = await client.query(
+      "SELECT r.id, r.titre, r.tempspreparation, r.photo FROM recettes r JOIN favorite_recettes f ON r.id = f.recette_id AND f.user_id = $1",
+      [userId]
+    );
     const data = result.rows;
     client.release();
     return data;
@@ -716,7 +739,130 @@ app.get("/favoriteList/:userId", async (req, res) => {
   }
 });
 
+async function fetchPreferencesAlimentaires() {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(
+      "SELECT preferences_alimentaires.id, preferences_alimentaires.titre, categories_preferences.titre as categorie FROM preferences_alimentaires JOIN categories_preferences ON preferences_alimentaires.categorie_id = categories_preferences.id"
+    );
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.get("/preferencesAlimentaires", async (req, res) => {
+  try {
+    const result = await fetchPreferencesAlimentaires();
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function addPreferencesAlimentaires(userId, preferencesIds, autre) {
+  try {
+    const client = await pool.connect();
+
+    for (let i = 0; i < preferencesIds.length; i++) {
+      const preferenceId = preferencesIds[i].preference_id;
+
+      const checkResult = await client.query(
+        "SELECT * FROM preferences_users WHERE user_id = $1 AND preference_id = $2",
+        [userId, preferenceId]
+      );
+
+      if (checkResult.rows[0]) {
+        continue;
+      }
+
+      await client.query(
+        "INSERT INTO preferences_users (user_id, preference_id, autre) VALUES ($1, $2, $3)",
+        [userId, preferenceId, autre]
+      );
+    }
+
+    client.release();
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.post("/preferencesAlimentaires", async (req, res) => {
+  try {
+    const { userId, preferencesId, autre } = req.body;
+    const result = await addPreferencesAlimentaires(
+      userId,
+      preferencesId,
+      autre
+    );
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function deletePreferencesAlimentaires(userId, preferencesIds) {
+  try {
+    const client = await pool.connect();
+
+    const result = await client.query(
+      "DELETE FROM preferences_users WHERE user_id = $1 AND preference_id = ANY($2::int[]) RETURNING *",
+      [userId, preferencesIds]
+    );
+    const data = result.rows[0];
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.delete("/preferencesAlimentaires", async (req, res) => {
+  try {
+    const { userId, preferencesId } = req.body;
+    const result = await deletePreferencesAlimentaires(userId, preferencesId);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
+async function fetchPreferencesAlimentairesByUser(userId) {
+  try {
+    const client = await pool.connect();
+    const result = await client.query(
+      "SELECT preference_id FROM preferences_users WHERE user_id = $1",
+      [userId]
+    );
+    const data = result.rows;
+    client.release();
+    return data;
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+}
+
+app.get("/preferencesAlimentaires/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await fetchPreferencesAlimentairesByUser(userId);
+    res.json({ result });
+  } catch (error) {
+    console.error("Error", error);
+    throw error;
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
-
